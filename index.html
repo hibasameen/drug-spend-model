@@ -1,0 +1,2367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+        Update: set the page title to reflect the broader focus on overall spending impacts
+        of the diffusion of new treatments.
+    -->
+    <title>Impact of Diffusion of New Treatments on Spending - A Simulation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            padding: 1rem;
+            background-color: #f7f9fc;
+            color: #333;
+        }
+        h1, h2, h3 {
+            margin-top: 1.5rem;
+            color: #2a4a7b;
+        }
+        h1 {
+            margin-bottom: 0.5rem;
+        }
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 1rem;
+            background: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+        }
+        label {
+            display: block;
+            margin: 0.5rem 0 0.25rem;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .radio-group {
+            margin: 0.5rem 0;
+        }
+        .radio-group label {
+            display: inline-block;
+            margin-right: 1.5rem;
+            font-weight: normal;
+        }
+        button {
+            margin-top: 1rem;
+            padding: 0.6rem 1.2rem;
+            font-size: 1rem;
+            color: #fff;
+            background-color: #2a4a7b;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1f3559;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 0.5rem;
+            text-align: right;
+            font-size: 0.9rem;
+        }
+        th {
+            background-color: #eef2f8;
+            color: #2a4a7b;
+            text-align: center;
+        }
+        td:first-child, th:first-child {
+            text-align: left;
+        }
+        .chart-container {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        /* Style collapsible sections to improve visual appeal */
+        details {
+            margin: 1rem 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9fbfe;
+            padding: 0.5rem 1rem;
+        }
+        details summary {
+            font-weight: 600;
+            color: #2a4a7b;
+            cursor: pointer;
+            margin: -0.5rem -1rem 0;
+            padding: 0.5rem 1rem;
+            background-color: #eef2f8;
+            border-radius: 4px;
+        }
+        details[open] summary {
+            border-bottom: 1px solid #ddd;
+        }
+        .chart-canvas {
+            border: 1px solid #ddd;
+            background-color: #fff;
+        }
+        .doc {
+            margin-top: 2rem;
+            border-top: 1px solid #ccc;
+            padding-top: 1rem;
+        }
+        .doc p {
+            margin: 0.75rem 0;
+        }
+
+        /* Styling for assumptions section and custom arrays */
+        .assumptions {
+            margin-top: 1rem;
+        }
+        /* The individual parameter groups are rendered as collapsible <details> elements.
+           Each group shares a consistent look and feel. */
+        details.therapeutic,
+        details.population,
+        details.innovation,
+        details.market {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background-color: #f0f4fa;
+            border-radius: 4px;
+        }
+        /* Summary styling provides a clear clickable header for each collapsible group. */
+        details.therapeutic > summary,
+        details.population > summary,
+        details.innovation > summary,
+        details.market > summary {
+            cursor: pointer;
+            font-weight: bold;
+            color: #2a4a7b;
+            margin: -0.75rem -0.75rem 0.5rem -0.75rem;
+            padding: 0.75rem;
+        }
+        /* When a group is collapsed, ensure the background colour still applies only to
+           the summary line. */
+        details.therapeutic[open] > summary,
+        details.population[open] > summary,
+        details.innovation[open] > summary,
+        details.market[open] > summary {
+            border-bottom: 1px solid #d0e0f0;
+        }
+        /* Inner containers hold the actual input fields. */
+        .therapeutic-inner,
+        .population-inner,
+        .innovation-inner,
+        .market-inner {
+            padding-top: 0.5rem;
+        }
+
+        /* Styles for the collapsible model documentation.  The documentation is
+           separated from the rest of the controls and given its own margin and
+           border. */
+        details.doc {
+            margin-top: 2rem;
+            padding: 0.75rem;
+            border-top: 1px solid #ccc;
+            background-color: #ffffff;
+        }
+        details.doc > summary {
+            cursor: pointer;
+            font-weight: bold;
+            color: #2a4a7b;
+            font-size: 1.2rem;
+            margin: -0.75rem -0.75rem 0.5rem -0.75rem;
+            padding: 0.75rem;
+        }
+        details.doc[open] > summary {
+            border-bottom: 1px solid #ddd;
+        }
+        .doc-inner {
+            padding-top: 0.5rem;
+        }
+        textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            resize: vertical;
+        }
+
+        /* Limitation notice styling: appear as an amber call‑out box */
+        .limitations {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            background-color: #fff4e5; /* soft amber background */
+            border-left: 4px solid #d97904; /* accent border */
+            border-radius: 4px;
+            color: #7a3e00;
+        }
+
+        /* Styling for policy parameters section */
+        .policy {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background-color: #eef5fc;
+            border-radius: 4px;
+        }
+        .policy h3 {
+            margin-top: 0;
+            color: #2a4a7b;
+        }
+    </style>
+    <!-- Load Plotly library for interactive charts -->
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <!-- Load MathJax to render LaTeX expressions in the documentation. This
+         configuration enables inline ($...$) and display ($$...$$) mathematics. -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<div class="container">
+    <!--
+        The main heading reflects the revised title requested by the user. This succinctly
+        describes the purpose of the tool, emphasising overall spending rather than only
+        unit prices.
+    -->
+    <h1>Impact of Diffusion of New Treatments on Spending &ndash; A Simulated Model</h1>
+    <!-- Author attribution: added at user request. This line appears directly under the
+         main title to credit the creator of the tool. -->
+    <p style="margin-top:0.25rem; font-size:0.9rem; color:#555; font-style:italic;">
+        Author: Hiba&nbsp;Sameen<br />
+        Version 0.8
+    </p>
+    <!-- Introduction and motivation section: wrapped in a collapsible container for cleaner layout.
+         The summary heading provides a succinct description and the details element is collapsed
+         by default so that first‑time users are not overwhelmed by lengthy explanatory text.  -->
+    <details style="display:none;">
+        <summary><strong>Introduction &amp; motivation</strong></summary>
+        <p>
+           This tool helps you explore how repeated waves of innovation priced against a cost‑effectiveness
+           threshold interact with adoption and population dynamics to shape long‑run spending.
+        </p>
+        <p>
+           It is a <em>teaching simulator</em>, not a forecasting tool. For full documentation and equations,
+           use the <a href="#" onclick="showTab('tab4');return false;">Model &amp; Results</a> tab.
+        </p>
+    </details>
+
+    <!-- Key takeaways summarising the long‑term effects of innovation frequency,
+         threshold‑anchored pricing, generic availability, adoption dynamics and population growth.  The
+         numbers below are derived from the calibrated default parameters: seven
+         innovations arriving every eight years over a 50‑year horizon (launch years
+         1, 9, 17, 25, 33, 41 and 49), a 15‑year exclusivity period, a 90 %
+         maximum adoption, a baseline generic price of £20 and a generic price factor of 10 %,
+         and zero additional patients at launch.  Feel free to adjust the assumptions
+         above and observe how these figures change. -->
+    <details style="display:none;">
+        <summary><strong>Introduction &amp; motivation</strong></summary>
+        <p>
+           This tool helps you explore how repeated waves of innovation priced against a cost‑effectiveness
+           threshold interact with adoption and population dynamics to shape long‑run spending.
+        </p>
+        <p>
+           It is a <em>teaching simulator</em>, not a forecasting tool. For full documentation and equations,
+           use the <a href="#" onclick="showTab('tab4');return false;">Model &amp; Results</a> tab.
+        </p>
+    </details>
+
+    <!-- Tabs navigation: allows users to switch between sections of the page. -->
+    <nav class="tabs-nav" style="margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">
+        <button type="button" onclick="showTab('tab1')" style="padding:0.5rem 0.75rem; border:1px solid #2a4a7b; background-color:#eef2f8; color:#2a4a7b; border-radius:4px;">Motivation &amp; Introduction</button>
+        <button type="button" onclick="showTab('tab2')" style="padding:0.5rem 0.75rem; border:1px solid #2a4a7b; background-color:#eef2f8; color:#2a4a7b; border-radius:4px;">Drug Lifecycle Timeline</button>
+        <button type="button" onclick="showTab('tab3')" style="padding:0.5rem 0.75rem; border:1px solid #2a4a7b; background-color:#eef2f8; color:#2a4a7b; border-radius:4px;">Empirical Evidence</button>
+        <button type="button" onclick="showTab('tab4')" style="padding:0.5rem 0.75rem; border:1px solid #2a4a7b; background-color:#eef2f8; color:#2a4a7b; border-radius:4px;">Model &amp; Results</button>
+        <!-- Removed Interpretation tab (formerly tab5) -->
+        <button type="button" onclick="showTab('tab6')" style="padding:0.5rem 0.75rem; border:1px solid #2a4a7b; background-color:#eef2f8; color:#2a4a7b; border-radius:4px;">Model Documentation</button>
+    </nav>
+
+    <!-- Tab contents -->
+    <div class="tab-content" id="tab1">
+
+        <h2>Motivation &amp; Introduction</h2>
+
+        <p>
+        The NHS faces sustained upward pressure on spending as new treatments diffuse.
+        Some of this pressure is warranted—innovations improve health outcomes—but system costs can
+        still rise even when an individual medicine is cost‑effective. Over time, repeated launches at
+        prices justified by a cost‑effectiveness threshold can raise the <em>standard‑of‑care</em> price significantly.
+        Larger eligible populations and rapid uptake compound the effect.
+      </p>
+
+      <h3>Why diffusion can raise spend even when each medicine is “cost‑effective”</h3>
+      <ul>
+        <li><strong>Comparator choice creates a price ratchet.</strong> If each new drug benchmarks against the
+            last on‑patent therapy (the “recursive” rule), prices step up at launch and only step down
+            when exclusivity expires. If launches are frequent relative to exclusivity, the next product
+            arrives before that step‑down materialises, so the standard‑of‑care (SoC) price keeps climbing.</li>
+        <li><strong>Threshold‑anchored pricing adds a fixed increment each wave.</strong> A willingness‑to‑pay
+            per QALY (λ), possibly modified by disease severity, translates ΔQALY into an allowable
+            price increment. Applied repeatedly, these increments stack on a rising comparator.</li>
+        <li><strong>Adoption dynamics scale the budget impact.</strong> Faster diffusion and higher long‑run
+            adoption move more patients onto the latest (and typically highest) price point; slower or
+            capped adoption leaves more patients on older, cheaper options.</li>
+        <li><strong>Population growth and “new patients” magnify levels.</strong> Incidence growth and any
+            additional eligible patients at launch (e.g., pathway changes) increase volumes at each price.</li>
+        <li><strong>Generic entry matters—if it arrives “in time”.</strong> When exclusivity ends, prices fall
+            to a fraction of launch levels. But if new waves come sooner, generic resets can be delayed
+            in practice by the next step‑up.</li>
+      </ul>
+
+      <h3>What this simulator does</h3>
+      <ul>
+        <li><strong>Shows mechanism, not forecasts.</strong> It is a <em>didactic</em> tool to visualise how
+            threshold‑anchored pricing, launch cadence, comparator rules (recursive vs. generic reference),
+            exclusivity, adoption and population dynamics interact to shape long‑run prices and spend.</li>
+        <li><strong>Lets you run “what‑if” policy experiments.</strong> Move λ, vary severity multipliers,
+            shorten/lengthen exclusivity, change innovation frequency, adoption speed and ceilings, add
+            new patients, and compare recursive vs. generic comparators side‑by‑side.</li>
+        <li><strong>Reports both the SoC price path and annual spend.</strong> The former shows the step‑ups
+            and step‑downs; the latter aggregates price, adoption and volumes for a budget‑relevant view.</li>
+      </ul>
+
+      <h3>What it does <em>not</em> do</h3>
+      <ul>
+        <li><strong>Not a budget impact model.</strong> It focuses on the <em>price‑setting channel</em> and excludes
+            downstream service costs or savings from longer survival, capacity constraints, discounts and rebates,
+            or unrelated future costs.</li>
+        <li><strong>Not a prediction.</strong> Results are <em>directional</em> and scenario‑based; magnitudes depend on
+            your inputs and on the calibration to a therapy area.</li>
+      </ul>
+
+      <h3>How to read the outputs</h3>
+      <ul>
+        <li><strong>Standard‑of‑care price (chart 1).</strong> Watch the on‑patent step‑ups and generic step‑downs.
+            Under recursive pricing, more frequent waves produce more steps and a higher terminal SoC price.
+            With generic reference pricing, the comparator resets lower each time, slowing the ratchet.</li>
+        <li><strong>Annual spend (chart 2).</strong> Driven by the SoC price, adoption curve and population size.
+            Faster uptake and larger eligible populations push the series higher; longer intervals between waves
+            and lower severity weights pull it down.</li>
+      </ul>
+
+      <h3>Quick tour</h3>
+      <p>
+        To explore the mechanics and equations, open the
+        <a href="#" onclick="showTab('tab4');return false;">Model &amp; Results</a> tab.
+        For the pathway from discovery to genericisation and why exclusivity matters, see
+        <a href="#" onclick="showTab('tab2');return false;">Drug Lifecycle Timeline</a>.
+        For representative UK prices across therapy areas, browse
+        <a href="#" onclick="showTab('tab3');return false;">Empirical Evidence</a>.
+      </p>
+
+      <p style="font-size:0.95rem;color:#444">
+        Background on methods: NICE’s Health Technology Evaluations manual and public summaries of
+        severity modifiers explain why willingness‑to‑pay may vary by disease severity; we reflect this via
+        a “severity multiplier” input. Use this to test the sensitivity of price steps to severity
+        assumptions without changing clinical ΔQALY.
+      </p>
+
+      <h3>When to use this tool</h3>
+      <ul>
+        <li><strong>Policy design:</strong> testing comparator rules (recursive vs. generic reference), exclusivity
+            lengths, managed access and generic pricing assumptions.</li>
+        <li><strong>Procurement and contracting:</strong> understanding how launch cadence and adoption speed shape
+            medium‑run exposure, even under constant λ.</li>
+        <li><strong>Service planning:</strong> gauging how population growth and pathway changes amplify (or mute)
+            the effect of pricing rules on aggregate spend.</li>
+      </ul>
+
+      <h3>Implications &amp; policy levers</h3>
+      <ul>
+        <li><strong>Comparator rule matters:</strong> Switching from the “recursive” rule—which benchmarks each launch against the last on‑patent therapy—to a <em>generic reference pricing</em> rule can substantially slow the price ratchet across waves.</li>
+        <li><strong>Innovation cadence:</strong> Longer intervals between launches give generics time to enter and reset the base price; rapid back‑to‑back launches stack price increments on a high comparator and accelerate spending growth.</li>
+        <li><strong>Threshold &amp; severity:</strong> Lower cost‑effectiveness thresholds (λ) and conservative severity modifiers reduce allowable price increments; higher thresholds and generous weighting increase them.</li>
+        <li><strong>Adoption management:</strong> Managed access agreements, adoption ceilings and slower diffusion curves moderate budget impact by leaving more patients on older, cheaper options.</li>
+        <li><strong>Population &amp; incidence:</strong> Growth in eligible populations and the addition of new patient groups compound spending; demographic and epidemiological projections should inform policy choices.</li>
+        <li><strong>Exclusivity &amp; patent policy:</strong> Policies that shorten effective exclusivity periods or encourage early generic entry (e.g., patent reforms, tendering) can break the price ratchet cycle.</li>
+        <li><strong>Use case:</strong> Use this simulator to explore how combinations of the above levers affect long‑run prices and spend. Results are scenario‑based and directional; they should not be interpreted as precise forecasts.</li>
+      </ul>
+
+    </div>
+    <div class="tab-content" id="tab2" style="display:none;">
+        <h2>Drug Discovery to Genericisation Timeline</h2>
+        <p>
+            The pathway from laboratory discovery to widespread generic availability involves many stages,
+            each with its own duration and decision gates.  Below is a condensed timeline for the UK NHS:
+        </p>
+        <ul>
+            <li><strong>Discovery &amp; pre‑clinical (3–6 years):</strong> Target identification, lead optimisation and
+                GLP toxicology studies.  A candidate is selected and patents are filed, starting the
+                exclusivity clock.</li>
+            <li><strong>Phase I (6–12 months):</strong> First‑in‑human studies assess safety, pharmacokinetics and
+                pharmacodynamics in small cohorts (≈20–100 participants).</li>
+            <li><strong>Phase II (1–2 years):</strong> Dose‑finding and early efficacy trials in ≈100–300 patients,
+                leading to a go/no‑go decision for pivotal trials.</li>
+            <li><strong>Phase III (2–4 years):</strong> Large randomised controlled trials (≈300–3,000+ patients)
+                confirm efficacy and safety, generating the clinical dossier for marketing authorisation.</li>
+            <li><strong>Regulatory approval (up to 1 year):</strong> The MHRA reviews the Common Technical
+                Dossier and issues a Marketing Authorisation, Summary of Product Characteristics and
+                Risk Management Plan.</li>
+            <li><strong>Health Technology Assessment (6–9 months, parallel):</strong> NICE conducts a Single
+                Technology Appraisal, evaluating cost‑effectiveness and budget impact.  Commercial access
+                agreements are often negotiated.</li>
+            <li><strong>Commissioning &amp; adoption (1–3 years):</strong> Integrated Care Boards and formularies
+                implement the guidance.  The NHS must fund NICE‑recommended medicines within 90 days;
+                education and real‑world evidence collection continue.</li>
+            <li><strong>Loss of exclusivity:</strong> Timing depends on patents, supplementary protection
+                certificates and data/market exclusivity.  Once exclusivity expires, generics or
+                biosimilars enter and prices typically fall sharply.</li>
+        </ul>
+        <p>
+            In parallel with the regulatory pathway, multiple “clocks” run: patents (20 years from
+            filing, often during discovery), supplementary protection certificates (+5 years),
+            data/market exclusivity (usually 8+2+1 years) and orphan exclusivity (≈10 years).
+            These determine when generic competitors can launch.
+        </p>
+
+        <!-- Optional static timeline image to visualise the sequence of stages -->
+        <p style="margin-top:1rem;">
+            <strong>Visual timeline:</strong> The graphic below summarises the sequence from discovery to
+            genericisation with approximate durations.  Hovering over each bar in the original slide
+            (available in the project repository) provides more detail, but this static image
+            conveys the main stages at a glance.
+        </p>
+        <img src="drug_lifecycle_years_uk_sequential_fixed.png" alt="Drug lifecycle timeline (sequential, UK NHS)" style="width:100%;max-width:1000px;border:1px solid #e5e7eb;border-radius:8px" />
+    </div>
+    <div class="tab-content" id="tab3" style="display:none;">
+        <!-- BEGIN new empirical evidence content -->
+        <h2>Empirical evidence &amp; real‑world prices</h2>
+        <p>
+          This tab anchors the toy model with real‑world price examples from selected therapy areas.  Each table contrasts older, widely used medicines with newer generations to illustrate how list prices evolve across waves of innovation.  Figures are indicative and drawn from publicly available sources.
+        </p>
+
+        <h3>Lipid‑lowering therapies</h3>
+        <table>
+          <thead>
+            <tr><th>Example</th><th>Older generation price (approx.)</th><th>New generation price (approx.)</th><th>Footnotes</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Hyperlipidaemia</td>
+              <td>Statins: £10–£350 per patient/year</td>
+              <td>PCSK9 inhibitors: ≈ £4,000 per patient/year</td>
+              <td><sup><a href="#fn1">[1]</a></sup></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Anti‑diabetes therapies</h3>
+        <table>
+          <thead>
+            <tr><th>Comparison</th><th>Older generation price (approx.)</th><th>New generation price (approx.)</th><th>Footnotes</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>DPP‑4 inhibitors vs Biguanide</td>
+              <td>Metformin: 28‑tablet pack ≈ £0.64 (annual cost &lt;£10)</td>
+              <td>DPP‑4 inhibitors (e.g., sitagliptin/Januvia): ≈£33 per month</td>
+              <td><sup><a href="#fn2">[2]</a><a href="#fn10">[10]</a></sup></td>
+            </tr>
+            <tr>
+              <td>SGLT2 inhibitors vs DPP‑4 inhibitors</td>
+              <td>DPP‑4 inhibitors: ≈£33 per month</td>
+              <td>SGLT2 inhibitors (dapagliflozin, empagliflozin): £36.59 per 28 tablets (annual ≈ £477)</td>
+              <td><sup><a href="#fn10">[10]</a><a href="#fn3">[3]</a><a href="#fn4">[4]</a></sup></td>
+            </tr>
+            <tr>
+              <td>GLP‑1 RA vs SGLT2 inhibitors</td>
+              <td>SGLT2 inhibitors: as above</td>
+              <td>Semaglutide (Wegovy) pens: £73.25–£175.80 per pack</td>
+              <td><sup><a href="#fn3">[3]</a><a href="#fn4">[4]</a><a href="#fn5">[5]</a></sup></td>
+            </tr>
+            <tr>
+              <td>GIP/GLP‑1 RA vs GLP‑1 RA</td>
+              <td>Semaglutide (Wegovy): as above</td>
+              <td>Tirzepatide (Mounjaro) pens: £92–£122 per 4‑week supply; highest dose ≈ £330</td>
+              <td><sup><a href="#fn5">[5]</a><a href="#fn6">[6]</a></sup></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Anti‑obesity therapies</h3>
+        <p>
+          New weight‑loss medicines repurpose anti‑diabetes agents at higher doses.  The table below compares the cost of established weight‑loss therapy against the latest generation.
+        </p>
+        <table>
+          <thead>
+            <tr><th>Example</th><th>Older generation price (approx.)</th><th>New generation price (approx.)</th><th>Footnotes</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Weight management</td>
+              <td>Semaglutide (Wegovy) pens: £73.25–£175.80 per pack</td>
+              <td>Tirzepatide (Mounjaro) pens: £92–£122 per 4‑week supply; highest dose ≈ £330</td>
+              <td><sup><a href="#fn5">[5]</a><a href="#fn6">[6]</a></sup></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Oncology therapies</h3>
+        <p>
+          New targeted and immuno‑oncology medicines command substantially higher prices than earlier monoclonal antibodies and chemotherapies.  Selected examples are shown below.
+        </p>
+        <table>
+          <thead>
+            <tr><th>Therapy category</th><th>Older generation price (approx.)</th><th>New generation price (approx.)</th><th>Footnotes</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>HER2‑targeted therapy</td>
+              <td>Trastuzumab (Herceptin): 150 mg vial ≈ £407; typical course ≈ £15k</td>
+              <td>New antibody–drug conjugates (trastuzumab emtansine, trastuzumab deruxtecan): list price ≈ £1.5–£2.6k per vial</td>
+              <td><sup><a href="#fn7">[7]</a></sup></td>
+            </tr>
+            <tr>
+              <td>Immunotherapies</td>
+              <td>Nivolumab: 100 mg vial ≈ £1,097</td>
+              <td>Pembrolizumab: 100 mg vial ≈ £2,630</td>
+              <td><sup><a href="#fn8">[8]</a><a href="#fn9">[9]</a></sup></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p class="note">Prices are indicative list prices and may vary by supplier, formulation or dose.  Newer therapies often have confidential discounts not reflected here.  Always consult the latest NICE guidance and Drug Tariff for up‑to‑date pricing.</p>
+
+        <h4>Sources &amp; footnotes</h4>
+        <ol class="footnotes">
+          <li id="fn1"><a href="https://www.rcpath.org/profession/publications/college-bulletin/july-2018/the-development-of-a-new-service-for-patients-with-hyperlipidaemia-and-ischaemic-heart-disease.html" target="_blank" rel="noopener">Royal College of Pathologists (RCPath) hyperlipidaemia clinic article</a> – states that statins cost £10–£350 per patient/year and PCSK9 inhibitors about £4,000 per year.</li>
+          <li id="fn2"><a href="https://www.nhsbsa.nhs.uk/sites/default/files/2024-09/Drug%20Tariff%20Part%20VIIIA%20October%202024.pdf" target="_blank" rel="noopener">NHS Drug Tariff Part VIIIA</a> – lists Metformin 500 mg tablets (pack of 28) at around £0.64, implying an annual cost under £10.</li>
+          <li id="fn3"><a href="https://www.nice.org.uk/guidance/ta679/chapter/2-Information-about-dapagliflozin" target="_blank" rel="noopener">NICE TA679: Dapagliflozin</a> – gives a list price of £36.59 per 28‑tablet pack (5 mg/10 mg).</li>
+          <li id="fn4"><a href="https://www.nice.org.uk/guidance/ta942/chapter/2-Information-about-empagliflozin" target="_blank" rel="noopener">NICE TA942: Empagliflozin</a> – states the list price of £36.59 per 28 tablets for 10 mg and 25 mg strengths.</li>
+          <li id="fn5"><a href="https://www.nice.org.uk/guidance/ta875/chapter/2-Information-about-semaglutide" target="_blank" rel="noopener">NICE TA875: Semaglutide (Wegovy)</a> – notes list prices per pack: £73.25 for 0.25/0.5/1.0 mg, £124.53 for 1.7 mg and £175.80 for 2.4 mg.</li>
+          <li id="fn6"><a href="https://researchbriefings.files.parliament.uk/documents/CBP-10171/CBP-10171.pdf" target="_blank" rel="noopener">UK Parliament Research Briefing CBP‑10171: Weight‑loss medicines</a> – reports tirzepatide (Mounjaro) list prices of £92 (2.5 mg/5 mg), £107 (7.5 mg/10 mg) and £122 (12.5 mg/15 mg) per 4‑week supply.</li>
+          <li id="fn7"><a href="https://www.nice.org.uk/advice/esnm13" target="_blank" rel="noopener">NICE ESNM13: Trastuzumab for HER2‑positive breast cancer</a> – summarises that a 150 mg vial of trastuzumab costs around £407 and a typical course costs about £15,000.</li>
+          <li id="fn8"><a href="https://www.nice.org.uk/guidance/ta857/chapter/2-Information-about-nivolumab" target="_blank" rel="noopener">NICE TA857: Nivolumab</a> – includes a list price of approximately £1,097 per 100 mg vial.</li>
+          <li id="fn9"><a href="https://www.nice.org.uk/guidance/ta997/chapter/2-Information-about-pembrolizumab" target="_blank" rel="noopener">NICE TA997: Pembrolizumab</a> – lists a price of about £2,630 per 100 mg vial.</li>
+
+          <li id="fn10"><a href="https://mdwiki.org/wiki/Sitagliptin" target="_blank" rel="noopener">MDWiki: Sitagliptin</a> – notes that a month's supply in the United Kingdom costs about £33.26 (2020).</li>
+        </ol>
+        <!-- END new empirical evidence content -->
+    </div>
+    <!-- Interpretation tab (id=tab5) has been removed -->
+
+    <!-- Parameter guide has been removed.  Each adjustable parameter now includes its own
+         explanatory note immediately following the input.  This change improves clarity
+         and reduces duplication.  If you wish to refer to the original list of
+         definitions, consult the project documentation. -->
+
+    <!-- Begin tab 4 content: wrap the form and all model outputs into a single tab. -->
+    <div class="tab-content" id="tab4" style="display:none;">
+        <!-- Purpose section: explains how to use this model and its limitations -->
+        <section aria-label="Purpose of this model" style="margin:1rem 0;padding:0.75rem 1rem;background:#f7fbff;border-left:4px solid #3b82f6;border-radius:4px">
+            <h3 style="margin:0 0 .25rem 0">Purpose &amp; how to use this model</h3>
+            <p style="margin:.5rem 0">
+                This is a didactic simulator — <strong>not</strong> a forecasting tool. It is designed to
+                illustrate how <em>threshold‑anchored pricing</em> can create a price “ratchet” over successive
+                waves of innovation, and how adoption speed, launch frequency, exclusivity, population growth,
+                and comparator choice (recursive vs. generic reference) affect long‑run spending.
+            </p>
+            <ul style="margin:.5rem 0 .25rem 1rem">
+                <li><strong>Use this model to</strong> explore sensitivities: move the threshold, change the
+                    innovation frequency, vary severity multipliers/ΔQ, switch adoption and population settings,
+                    and compare recursive vs. generic reference pricing.</li>
+                <li><strong>Do not use it to</strong> predict absolute prices or budgets for a specific NHS
+                    programme. It omits broader system dynamics (e.g., unrelated future costs, service capacity)
+                    and assumes stylised adoption and exclusivity rules.</li>
+                <li><strong>Interpretation</strong>: the model shows direction and relative magnitude (e.g., the
+                    gap between recursive and generic comparators), not precise cash‑flow estimates.</li>
+            </ul>
+            <p style="margin:.5rem 0 0 0">Default parameters are calibrated to a <strong>lipid‑lowering therapy</strong> example;
+                they are <em>not</em> an average across therapy areas.</p>
+        </section>
+
+        <form id="controls" onsubmit="event.preventDefault(); updateOutputs();">
+
+        <!-- Limitations notice: placed at the top of the input panel so users see it before
+             adjusting parameters.  This note clarifies what the model does and does not
+             cover.  It emphasises that the simulator focuses on the price‑setting channel
+             via threshold‑anchored pricing and does not capture the downstream cost
+             pressures from improved longevity or the narrow scope of current cost
+             containment measures. -->
+        <div class="limitations">
+            <strong>Limitations:</strong> This model demonstrates only the impact of
+            threshold‑anchored pricing and the associated pricing ratchet.  It does not
+            explicitly simulate two other important channels of health‑care spending:
+            (i) longer survival with continued or increased health‑service utilisation,
+            (ii) the spending caps of narrow voluntary price agreements on branded drug cost, and
+            (iii) in England, commercial discounts (confidential net prices), patient access schemes,
+             and tendering complicate the simple algebra. But the directional logic—comparator price 
+             + thresholded value of incremental benefit—remains the basis for negotiations 
+             and modelling in HTA theory. Users should keep this simplification in mind when interpreting
+            the results.
+        </div>
+        <!--
+            Policy parameters section.  These inputs relate to system‑level or policy‑level
+            choices rather than disease‑specific assumptions.  Currently it includes only
+            the NICE cost‑effectiveness threshold, but other high‑level parameters could
+            be added here in future.  Grouping these inputs separately helps users
+            distinguish policy levers from model calibration choices.
+        -->
+        <details class="policy">
+            <summary><strong>Policy parameters</strong></summary>
+            <div class="policy">
+            <label for="threshold"><strong>NICE cost‑effectiveness threshold (£ per QALY)</strong></label>
+            <!-- The threshold input accepts any positive numeric value. The step attribute is omitted
+                 to avoid browser validation issues that occur with large step sizes. -->
+            <input type="number" id="threshold" name="threshold" value="25000" min="1" />
+            <p style="font-size:0.9rem; color:#555; margin-top:0.5rem;">
+                This threshold represents the maximum amount the payer is willing to pay per QALY.
+                NICE typically uses a range of £20,000–£30,000 per QALY for most medicines, with
+                higher values for high‑severity conditions. Adjust this parameter to explore how
+                different willingness‑to‑pay levels affect launch prices and spending.
+            </p>
+
+            <!--
+                Market exclusivity determines how long a new treatment can command its full launch
+                price before generic competition enters.  Because exclusivity rules are set at the
+                system or regulatory level, this input is grouped with the policy parameters.  If
+                the gap between launches exceeds the exclusivity period, the next wave prices
+                against the generic predecessor in both recursive and generic comparator scenarios.
+            -->
+
+            <!-- Exclusivity years input moved from the Market dynamics section back to policy. -->
+            <label for="exclusivityYears"><strong>Exclusivity years</strong></label>
+            <input type="number" id="exclusivityYears" name="exclusivityYears" value="15" min="1" step="1" />
+            <p style="font-size:0.9rem; color:#555; margin-top:0.5rem;">
+                The exclusivity period (including SPCs) sets how long a treatment can command its
+                launch price before generics enter.  Adjusting this parameter affects whether new
+                treatments benchmark against on‑patent or generic predecessors.
+            </p>
+            </div>
+        </details>
+
+        <!-- No comparator selection is needed because both scenarios are always
+             displayed. The recursive (on‑patent) and generic comparator
+             scenarios are plotted together in the charts. Detailed tables
+             default to the recursive scenario. -->
+
+
+        <!-- Assumptions section restructured into distinct panels for clarity -->
+        <div class="assumptions">
+            <!-- Therapeutic area -->
+            <details class="therapeutic">
+                <summary>Therapeutic area</summary>
+                <div class="therapeutic-inner">
+                    <label for="diseaseGroup"><strong>Disease group</strong></label>
+                    <select id="diseaseGroup" name="diseaseGroup">
+                        <option value="default" selected>Lipid‑lowering therapy (default)</option>
+                        <option value="obesity">Anti‑obesity therapy</option>
+                        <option value="diabetes">Anti‑diabetes therapy</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                    <p style="font-size:0.9rem; color:#555; margin-top:0.3rem;">
+                        Select a calibrated therapy area to load predefined arrays of QALY gains,
+                        severity multipliers and non‑drug costs.  “Lipid‑lowering therapy” uses
+                        parameters calibrated to intensive statin use; “Anti‑obesity therapy”
+                        reflects newer weight‑loss drugs (e.g. semaglutide, tirzepatide), and
+                        “Anti‑diabetes therapy” represents sodium–glucose co‑transporter‑2
+                        inhibitors (e.g. empagliflozin).  Choosing <em>Custom</em> reveals text boxes
+                        where you can enter your own arrays.
+                    </p>
+                    <div id="customGroupInputs" style="display:none; margin-top: 0.5rem;">
+                        <label for="customDeltaQ">ΔQALY list (comma‑separated)</label>
+                        <textarea id="customDeltaQ" rows="2" placeholder="0.14,0.14,0.14,0.14"></textarea>
+                        <label for="customSeverity">Severity multipliers (comma‑separated)</label>
+                        <textarea id="customSeverity" rows="2" placeholder="1.2,1.2,1.2,1.2"></textarea>
+                        <label for="customDOther">ΔOther (£) list (comma‑separated)</label>
+                        <textarea id="customDOther" rows="2" placeholder="1100,1100,1100,1100"></textarea>
+                        <p style="font-size:0.8rem; color:#555; margin-top:0.25rem;">
+                            When using the <em>Custom</em> option, enter comma‑separated lists for the
+                            incremental QALY gains (ΔQ), severity multipliers and incremental
+                            non‑drug costs (ΔOther).  The length of each list must match the
+                            number of innovation waves.  Values correspond to the health gain per
+                            patient, the willingness‑to‑pay modifier and pathway costs (positive or
+                            negative) for each wave.
+                        </p>
+                    </div>
+                </div>
+            </details>
+
+            <!-- Population and disease dynamics -->
+            <details class="population">
+                <summary>Population and disease dynamics</summary>
+                <div class="population-inner">
+                    <!--
+                        Unit selection: allow the user to choose whether to work in population
+                        “units” (where 1 unit ≈ 10,000 individuals) or actual individuals.  A
+                        units‑based approach keeps spending figures manageable; an
+                        individuals‑based approach multiplies all population counts by 1.
+                    -->
+                    <label for="populationUnits"><strong>Population units</strong></label>
+                    <select id="populationUnits" name="populationUnits">
+                        <option value="units">Units (1 = 10,000 individuals)</option>
+                        <option value="individuals" selected>Actual individuals</option>
+                    </select>
+                    <p style="font-size:0.8rem; color:#555; margin-top:0.25rem;">
+                        Choose whether to enter the population and new patient counts in
+                        <em>units</em> (where <strong>1 unit ≈ 10,000 individuals</strong>) or as
+                        actual numbers of individuals.  Spending calculations will scale
+                        accordingly.  When switching modes, default population values for
+                        each therapy are adjusted automatically.
+                    </p>
+
+                    <label for="patientsPerWave"><strong>Base patient population</strong></label>
+                    <!-- The base patient population is now specified in absolute individuals by
+                         default.  For example, the lipid‑lowering therapy begins with
+                         approximately eight million people (8,000,000).  If you switch to
+                         <em>units</em> using the selector above, each unit will represent
+                         10,000 individuals and the displayed value will adjust accordingly.  -->
+                    <input type="number" id="patientsPerWave" name="patientsPerWave" value="8000000"
+                           min="0" step="1" />
+                    <p style="font-size:0.9rem; color:#555; margin-top:0.3rem;">
+                        Enter the initial number of eligible patients before the first wave.  When
+                        working with <em>actual individuals</em>, this value represents the
+                        number of people (e.g., 8,000,000).  If you select <em>units</em> using
+                        the toggle above, each unit corresponds to 10,000 individuals and the
+                        input will adjust accordingly.  The population evolves over time via
+                        the incidence rate and optional new patient additions.
+                    </p>
+
+                    <label for="newPatientsMode"><strong>New patients added per wave</strong></label>
+                    <select id="newPatientsMode" name="newPatientsMode">
+                        <option value="none" selected>None</option>
+                        <option value="volume">Absolute number</option>
+                        <option value="percentage">Percentage of current population (%)</option>
+                    </select>
+                    <p style="font-size:0.8rem; color:#555; margin-top:0.25rem;">
+                        Choose whether to add new patients at each innovation as a fixed
+                        number or as a percentage of the current population.  In
+                        <em>actual individuals</em> mode the fixed number represents people
+                        (e.g., 50&nbsp;000 new patients).  If you switch to <em>units</em>, the
+                        fixed number represents units where each unit corresponds to
+                        10,000 individuals.  Selecting <em>None</em> means no additional
+                        patients are added at launch.
+                    </p>
+                    <div id="newPatientsVolumeDiv" style="display: none; margin-top: 0.5rem;">
+                        <label for="newPatientsVolume"><em>New patients per wave (absolute)</em></label>
+                        <input type="number" id="newPatientsVolume" name="newPatientsVolume" value="0" min="0" />
+                        <p style="font-size:0.8rem; color:#555; margin-top:0.25rem;">
+                            Specify the additional number of patients who become eligible at the time
+                            of each launch.  In <em>actual individuals</em> mode this value is the
+                            number of people.  If you switch to <em>units</em>, the value is
+                            measured in units (1 unit ≈ 10,000 individuals).  These new
+                            patients join the baseline pool before adoption shares are applied.
+                            Leave this at zero if no extra patients are added.
+                        </p>
+                    </div>
+                    <div id="newPatientsPercentDiv" style="display: none; margin-top: 0.5rem;">
+                        <label for="newPatientsPercent"><em>New patients per wave (%)</em></label>
+                        <input type="number" id="newPatientsPercent" name="newPatientsPercent" value="0" min="0" max="100" step="1" />
+                        <p style="font-size:0.8rem; color:#555; margin-top:0.25rem;">
+                            Specify the percentage of the current patient population that
+                            becomes eligible at the time of each launch.  For example, a value of
+                            5 adds 5 % of the current patient pool (in individuals or units) as
+                            new patients.  This percentage is applied to the existing pool, and
+                            the resulting number of new patients is added to the baseline before
+                            adoption shares are calculated.
+                        </p>
+                    </div>
+
+                    <label for="incidenceRate"><strong>Incidence rate (% per year)</strong></label>
+                    <input type="number" id="incidenceRate" name="incidenceRate" value="0" min="0" step="0.1" />
+                    <p style="font-size:0.9rem; color:#555; margin-top:0.5rem;">
+                        Annual percentage growth in the underlying disease incidence.  Enter the
+                        percentage increase in the number of eligible patients each year.  This
+                        value is expressed as a percentage (0–100) and compounds the base patient
+                        population before new interventions are introduced.
+                    </p>
+                    <!-- Disease dynamics illustration.  The src will be dynamically updated based
+                         on the selected disease group.  Each therapy has its own
+                         population dynamics GIF (e.g. lipid‑lowering, obesity, diabetes). -->
+                    <img id="populationDynamicsImg" src="therapy_lipid.gif" alt="Population growth illustration" style="width:100%; margin-top:0.75rem;" />
+                </div>
+            </details>
+
+            <!-- Innovation and adoption dynamics -->
+            <details class="innovation">
+                <summary>Innovation and adoption dynamics</summary>
+                <div class="innovation-inner">
+                    <label for="innovationFrequency"><strong>Innovation frequency</strong></label>
+                    <select id="innovationFrequency" name="innovationFrequency">
+                        <option value="3">Every 3 years</option>
+                        <option value="5">Every 5 years</option>
+                        <option value="8" selected>Every 8 years (default)</option>
+                        <option value="10">Every 10 years</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                    <p style="font-size:0.8rem; color:#555; margin-top:0.25rem;">
+                        Determines how often new treatments are introduced.  A shorter interval
+                        means more waves (and a larger ratchet) over the 50‑year horizon.  Select
+                        <em>Custom</em> to enter specific launch years below.
+                    </p>
+                    <div id="customLaunchInputs" style="display:none; margin-top: 0.5rem;">
+                        <label for="entryYearsInput"><strong>Launch years (comma‑separated)</strong></label>
+                        <input type="text" id="entryYearsInput" name="entryYearsInput" value="1,4,7,10,13,16" />
+                        <p style="font-size:0.8rem; color:#555; margin-top:0.25rem;">
+                            Enter a comma‑separated list of years when new innovations launch.
+                            For example, “1,9,17,25” will model four waves at years 1, 9, 17
+                            and 25.  Use this option only when <em>Custom</em> is selected above.
+                        </p>
+                    </div>
+
+                    <label for="replacementRate"><strong>Maximum adoption (% of existing patients)</strong></label>
+                    <input type="number" id="replacementRate" name="replacementRate" value="90" min="0" max="100" step="1" />
+                    <p style="font-size:0.8rem; color:#555; margin-top:0.25rem;">
+                        Defines the long‑run share of the existing patient population that
+                        eventually adopts each new therapy.  For example, 90 % means that,
+                        over time, 90 % of patients will use the newest treatment, leaving
+                        10 % on older therapies.
+                    </p>
+
+                    <label for="adoptionRate"><strong>Adoption rate</strong></label>
+                    <input type="number" id="adoptionRate" name="adoptionRate" value="0.6" min="0.1" step="0.1" />
+                    <p style="font-size:0.8rem; color:#555; margin-top:0.25rem;">
+                        Controls how steeply patients adopt a new intervention after launch.
+                        Higher values produce faster uptake and a steeper logistic diffusion
+                        curve, while lower values slow adoption.
+                    </p>
+
+                    <label for="adoptionMidpoint"><strong>Adoption midpoint (years)</strong></label>
+                    <input type="number" id="adoptionMidpoint" name="adoptionMidpoint" value="3" min="0" step="0.5" />
+                    <p style="font-size:0.8rem; color:#555; margin-top:0.25rem;">
+                        Specifies how long after launch it takes to reach 50 % of the
+                        maximum adoption.  Together with the adoption rate, this shapes
+                        the timing of the logistic uptake curve.
+                    </p>
+                    <!-- Innovation waves illustration.  The src will be dynamically updated based
+                         on the selected innovation frequency.  A default 8‑year waves GIF is
+                         shown initially to match the default frequency choice. -->
+                    <img id="innovationWavesImg" src="innovation_8yr_waves.gif" alt="Innovation waves illustration" style="width:100%; margin-top:0.75rem;" />
+                </div>
+            </details>
+
+            <!-- Market dynamics -->
+            <details class="market">
+                <summary>Market dynamics (prices)</summary>
+                <div class="market-inner">
+                    <label for="baselineGenericPrice"><strong>Baseline generic price (£ per patient)</strong></label>
+                    <!-- Recalibrated baseline generic price to reflect UK evidence.  Early therapies such as statins or metformin cost only tens of pounds per year, so a lower starting price of £20 better reflects real-world baselines. -->
+                    <input type="number" id="baselineGenericPrice" name="baselineGenericPrice" value="20" step="any" />
+                    <p style="font-size:0.8rem; color:#555; margin-top:0.25rem;">
+                        The per‑patient price of the comparator used for the first wave (in
+                        pounds).  All launch and generic prices are calculated on a
+                        per‑patient basis using the cost‑effectiveness threshold,
+                        severity multipliers and non‑drug costs.  When working in
+                        population <em>units</em>, the total spend multiplies this per‑patient
+                        price by 10,000 for each unit; when working in <em>actual
+                        individuals</em> it multiplies by the number of people directly.
+                        Later waves benchmark against the previous wave’s price according
+                        to the pricing rule (recursive or generic reference).
+                    </p>
+
+                    <label for="genericFactor"><strong>Generic price factor (fraction)</strong></label>
+                    <!-- Reduce generic price factor from 30 % to 10 % to reflect the steep drop in price when drugs go off‑patent (generic statins and metformin are a fraction of on‑patent prices). -->
+                    <input type="number" id="genericFactor" name="genericFactor" value="0.10" step="any" />
+                    <p style="font-size:0.8rem; color:#555; margin-top:0.25rem;">
+                        The fraction of the on‑patent price that remains once exclusivity expires.
+                        For example, a value of 0.10 means that a drug’s price falls to 10 % of
+                        its launch level when generics or biosimilars enter the market.  This
+                        factor also determines the comparator in the generic reference scenario.
+                    </p>
+                </div>
+            </details>
+        </div>
+
+        <button type="submit">Calculate</button>
+    </form>
+
+    <div id="results" style="display: none;">
+        <h2>Results</h2>
+        <!-- Summary is displayed near the top of the results for quick reference -->
+        <p id="summary"></p>
+        <!-- Charts come before the tables to provide a visual overview up front. We use
+             Plotly so users can hover and explore the values interactively. Each chart
+             is rendered into a dedicated div rather than a canvas. -->
+        <div class="chart-container">
+            <!-- Increase the height of the charts to give the axes more breathing room. 350px helps
+                 prevent tick labels from crowding into the plot area, especially when numbers
+                 include a currency symbol and thousands separators. -->
+            <div id="socChart" class="chart-div" style="width:100%;height:350px;"></div>
+        </div>
+        <div class="chart-container">
+            <div id="spendChart" class="chart-div" style="width:100%;height:350px;"></div>
+        </div>
+        <!-- Button to toggle the visibility of the detailed tables -->
+        <button id="toggleTablesBtn" type="button" onclick="toggleTables()" style="margin-top: 1rem;">Show detailed tables</button>
+        <!-- Detailed tables are wrapped in a container so that they can be shown/hidden -->
+        <div id="tablesSection" style="display: none;">
+            <div id="waveTableContainer"></div>
+            <div id="socTableContainer"></div>
+            <div id="spendTableContainer"></div>
+        </div>
+    </div>
+
+    <!-- Make the model documentation collapsible so users can hide or show the detailed
+         explanation as needed.  Wrapping the existing documentation in a <details>
+         element with a summary improves the user experience by reducing visual
+         clutter. -->
+    <details class="doc" style="display:none">
+        <summary>Model Documentation</summary>
+        <div class="doc-inner">
+        <h2>Model Documentation</h2>
+        <p>
+            This simulator models a stylised sequence of innovation “waves” over a
+            50‑year period.  The timing of these waves is governed by the
+            <em>Innovation frequency</em> you select above.  For example, choosing
+            “Every 3 years” generates waves in years 1, 4, 7 and so on up to year 49
+            (17 waves in total), whereas selecting “Every 10 years” produces waves
+            in years 1, 11, 21, 31 and 41 (five waves).  You can also enter a
+            comma‑separated list of launch years under the Custom option.  Each
+            wave represents a new treatment that delivers an incremental health
+            benefit over the current standard of care.  The results are projected over a
+            <strong>50‑year horizon</strong>, so you can see how prices and spending evolve over
+            the long term.
+        </p>
+        <p><strong>Limitations:</strong> This model focuses on how pricing and adoption interact to
+        determine drug expenditures via a pricing ratchet and a logistic adoption model with
+        population growth.
+        It does <em>not</em> explicitly simulate the longer‑term health‑service utilisation
+        effects described in the second motivation bullet (i.e., patients living longer
+        with potentially higher resource use), nor does it model the narrow focus of
+        current cost‑containment agreements.  In other words, improved health outcomes
+        are assumed to be reflected only through the QALY gain and pricing, not through
+        downstream costs or savings in other parts of the NHS.  Users should keep this
+        simplification in mind when interpreting the results.</p>
+        <h3>Threshold‑based pricing</h3>
+        <p>
+            For each wave <em>i</em>, the on‑patent launch price (<em>P<sub>i</sub></em>) depends on the
+            cost‑effectiveness threshold, the comparator price and disease‑specific parameters.
+            In LaTeX form this can be written as:
+        </p>
+        <p style="text-align:center;">
+            $$ P_i \;=\; P_{\text{comp}} \;+\; \lambda\,S_i\,\Delta Q_i \;-\; \Delta\text{Other}_i $$
+        </p>
+        <p>
+            The <strong>Comparator price</strong> depends on the selected scenario:
+        </p>
+        <ul>
+            <li><strong>Recursive:</strong> the comparator is normally the on‑patent launch price of the previous wave, so prices build on one another.  However, if the previous wave’s exclusivity has expired before the new launch (i.e. the gap between launch years exceeds the exclusivity period), the comparator reverts to the previous wave’s <em>generic</em> price.  Thus when the exclusivity period is shorter than the innovation interval, the recursive and generic comparators coincide.</li>
+            <li><strong>Generic:</strong> every wave prices against the <em>generic price of the previous wave</em> rather than the last on‑patent therapy.  Concretely, the comparator is the prior launch price multiplied by the generic factor (e.g. 10 %).  This keeps the price ratchet in check while allowing the comparator to rise slowly over time.</li>
+        </ul>
+        <p>
+            The <strong>NICE cost‑effectiveness threshold</strong> (entered above) represents the maximum amount
+            commissioners are willing to pay per quality‑adjusted life year (QALY). The model multiplies
+            this threshold by the QALY gain (ΔQ) and a <em>severity multiplier</em> to reflect higher
+            willingness‑to‑pay for more severe conditions. The model then subtracts incremental non‑drug costs (ΔOther), such as extra monitoring or savings.
+        </p>
+        <h3>Generic entry</h3>
+        <p>
+            After <strong>15 years of exclusivity</strong>, each wave’s price drops to 10 % of its
+            on‑patent level to approximate the effect of generic or biosimilar competition.
+            This longer exclusivity period incorporates supplementary protection
+            certificates (SPCs). The lower price is used until a newer innovation
+            supersedes it.
+        </p>
+        <h3>Adoption dynamics and overall spend</h3>
+        <p>
+            Spending in this simulator is driven by how patients adopt successive
+            innovations and by growth in the eligible population.  After a new
+            treatment launches, patients do not all switch at once; instead they
+            adopt the innovation gradually via a <strong>logistic uptake curve</strong>.
+            The logistic curve is defined by two parameters: the adoption rate
+            (steepness) and the adoption midpoint (the time it takes to reach
+            50 % of the long‑run adoption).  Uptake starts slowly, accelerates
+            around the midpoint and then saturates at the <strong>maximum adoption</strong>
+            level (e.g. 90 %).  Patients who do not adopt remain on their existing
+            therapies until a later wave arrives.  In mathematical terms the
+            unnormalised adoption value for wave <em>i</em> at time <em>t</em> is
+            \(f_i(t) = \frac{1}{1 + e^{-r\,(t - m)}}\), where <em>r</em> is the
+            adoption rate and <em>m</em> is the adoption midpoint.  These values
+            determine the relative share of each wave among those patients who
+            eventually switch: the total share allocated to all innovations sums
+            to the maximum adoption level, and the residual share (1 – maximum
+            adoption) remains on earlier therapies.
+        </p>
+        <p>
+            The treated population itself grows over time.  Each year before any
+            intervention launches, the base population increases by the specified
+            <strong>incidence rate</strong> (entered above).  At the moment of a launch
+            you can also add <strong>new patients</strong> to the pool.  These new patients
+            may be specified either as an absolute number or as a percentage of
+            the current population.  All new patients are assumed to start on
+            the latest available treatment immediately.  The combination of
+            incidence‑driven growth, logistic adoption and the maximum adoption
+            ceiling determines how the patient mix evolves and how spending
+            accumulates over the 50‑year horizon.
+        </p>
+        <h3>Core equations and parameter relationships</h3>
+        <p>
+            The simulator relies on a set of simple formulas that link the user‑defined parameters
+            to the prices, uptake and costs over time. These equations are described below.
+        </p>
+        <p><strong>Launch pricing</strong>: For each innovation wave <em>i</em>, the on‑patent launch price
+            (<em>P<sub>i</sub></em>) is calculated from the current comparator price (<em>P<sub>comp</sub></em>)
+            and the incremental cost‑effectiveness ratio implied by the cost‑effectiveness
+            threshold. The formula is:</p>
+        <p style="text-align:center;">
+            $$ P_i \;=\; P_{\text{comp}} \;+\; \lambda\,S_i\,\Delta Q_i \;-\; \Delta\text{Other}_i $$
+        </p>
+        <p>
+            where \(\lambda\) is the NICE cost‑effectiveness threshold entered above, \(S_i\)
+            is the severity multiplier for wave <em>i</em>, ΔQ<sub>i</sub> is the incremental QALY gain,
+            and ΔOther<sub>i</sub> captures additional non‑drug costs (positive costs or savings).
+            The <strong>comparator price</strong> differs by scenario.  In the recursive case
+            the comparator is dynamic: if the previous wave is still within its exclusivity
+            period the new treatment benchmarks against the last on‑patent launch price;
+            once exclusivity has expired it resets to the prior wave’s generic price.
+            In the generic case the comparator is always the <em>generic price of the previous
+            wave</em>, i.e. the prior launch price multiplied by the generic factor (for example,
+            10 %).  For the first wave where no prior launch exists, the comparator is the
+            baseline generic price.  This dynamic benchmarking slows the price ratchet when
+            launches are spaced further apart than the exclusivity period.
+        </p>
+
+        <p>
+            In this simulator, the <strong>severity multiplier</strong> adjusts the threshold to
+            reflect how serious the treated condition is.  NICE’s guidance uses only two
+            multipliers: 1.2 for medium‑severity conditions and 1.7 for high‑severity
+            conditions.  The default disease group assumes medium severity throughout and
+            therefore assigns a multiplier of <strong>1.2</strong> to every wave.  If you
+            wish to explore other severity levels or vary them by wave, choose the
+            <em>Custom</em> option and enter a comma‑separated list of multipliers.  The
+            severity multipliers influence the launch price calculations through the
+            equation above.
+        </p>
+
+        <p>
+            <strong>Latest NICE guidance on severity modifiers:</strong> NICE’s 2022
+            methods manual replaced the end‑of‑life premium with a <em>severity
+            modifier</em> that gives extra weight to health gains for more severe
+            conditions.  Under this framework, treatments for patients who lose a
+            substantial amount of their future health can receive a value multiplier of
+            either <strong>1.2×</strong> (medium severity) or <strong>1.7×</strong> (high
+            severity).  For example, patients expected to lose between 85 % and 95 % of
+            their future QALYs—or 12 to 18 discounted QALYs—qualify for the 1.2
+            weighting; those expected to lose more than 95 % or more than 18
+            discounted QALYs qualify for the 1.7 weighting.  NICE applies this
+            multiplier to the QALY gains when calculating the cost‑effectiveness of a
+            treatment, effectively lowering the cost per QALY and increasing the
+            likelihood of a positive recommendation.  You can read a public
+            explanation of these rules in the <a href="https://www.ohe.org/publications/understanding-societal-preferences-for-priority-by-disease-severity-in-england-wales/">OHE report on severity modifiers</a>.
+            In practice, the severity modifier can be viewed as multiplying the
+            cost‑effectiveness threshold by the same factor, which is why this
+            simulator refers to a “severity multiplier.”  The default values
+            provided here follow NICE’s guidance: medium‑severity conditions use a
+            multiplier of 1.2 and high‑severity conditions use 1.7.  In this version
+            only the lipid‑lowering therapy calibration is predefined; to explore
+            other severity assumptions please use the <em>Custom</em> option and enter
+            your own multipliers.
+        </p>
+        <p><strong>Generic price</strong>: After the exclusivity period (<em>E</em> years), each wave’s price
+            drops to a fraction of its on‑patent level:</p>
+        <p style="text-align:center;">
+            $$ P_{i,\text{gen}} \;=\; f_{\text{gen}}\,P_i $$
+        </p>
+        <p>
+            where <em>f<sub>gen</sub></em> is the <em>generic price factor</em> (e.g. 0.10). Before
+            exclusivity expires, the current wave’s price is used; after expiry, the generic price
+            applies until a newer innovation takes its place.
+        </p>
+        <p>
+            In the <strong>generic comparator scenario</strong> used in the charts, each new
+            treatment is priced relative to the <em>generic price of the previous
+            wave</em> rather than the last on‑patent therapy.  Concretely, the
+            comparator price for wave 1 is the baseline generic price, but for
+            subsequent waves it becomes the previous launch price multiplied by
+            the generic factor (e.g. 10 %).  This choice means the comparator
+            grows slowly over time—reflecting erosion in the on‑patent price
+            rather than a constant reset to £20—and therefore each new
+            treatment adds its value increment to a modestly rising baseline.
+            We plot both the recursive (on‑patent comparator) and generic
+            comparator scenarios side by side to illustrate their different
+            impacts on prices and spending.
+        </p>
+        <p><strong>Standard of care price</strong>: In any given year <em>t</em>, the standard of care
+            price is the highest priced wave that is still within its exclusivity period. If no
+            waves are on patent, the price equals the most recent generic price. This captures the
+            "ratchet" mechanism: prices step up at launch and step down only when exclusivity
+            expires before the next launch.
+        </p>
+        <p><strong>Annual drug spend</strong>: Spending is calculated by allocating the
+            entire treated population across the baseline therapy and each
+            innovation according to the adoption curves.  At the first wave’s
+            launch everyone starts on the initial treatment.  When a new
+            therapy arrives, patients adopt it gradually following the
+            logistic uptake curve: adoption begins near zero, rises over
+            time, and saturates at the <em>maximum adoption</em> percentage (e.g.
+            90&nbsp;%).  Patients who do not adopt remain on older therapies.
+            New patients added to the population (through incidence growth
+            or the user‑specified new‑patient addition) are assigned to
+            the most recent innovation.  Let <em>N_i(t)</em> denote the number of
+            patients on wave <em>i</em> in year <em>t</em>.  The annual spend is then
+            $$
+                \text{Spend}(t) = \sum_i \text{price}_i(t)\,N_i(t)
+            $$
+            where \(\text{price}_i(t)\) is the on‑patent or generic price of
+            wave <em>i</em> depending on whether exclusivity has expired.  The
+            simulator keeps track of <em>N_i(t)</em> for each year and reports
+            both the annual and cumulative spend across the 50‑year horizon.</p>
+        <h3>Assumptions and parameters</h3>
+        <p>
+            All parameters—QALY gains (ΔQ), severity multipliers (S), incremental
+            non‑drug costs (ΔOther), the generic price factor <em>f_{\mathrm{gen}}</em>,
+            exclusivity duration <em>E</em>, the base patient population <em>N_0</em>, the
+            maximum adoption percentage, the number of new patients added per wave
+            (<em>N_{\mathrm{new}}</em> or a percentage), the incidence rate and the entry years—can be
+            customised using the controls at the top of this page.  Only one
+            predefined disease group is included (calibrated to high‑intensity
+            lipid‑lowering therapy); for other therapy areas, choose the
+            "Custom" option and enter your own arrays.
+        </p>
+        </div>
+    </details>
+    </div><!-- close tab4: end of model and results -->
+    <div class="tab-content" id="tab6" style="display:none">
+        <h2>Model documentation</h2>
+        <p>This describes the lightweight diffusion–impact model used for scenario calculations in the app.</p>
+
+        <h3>Model overview &amp; structure</h3>
+        <p>
+            This simulator combines a value‑based pricing engine with a simple diffusion–impact model. At each wave of innovation, the launch price is calculated from the cost‑effectiveness threshold (\(\lambda\)), disease severity modifiers, the comparator rule (recursive vs. generic) and any non‑drug cost offset (\(\Delta\mathrm{Other}\)). Once the price is set, a cohort‑specific uptake curve models how quickly eligible patients adopt the new therapy. Population projections and incident cases determine the number of eligible patients each year. The model multiplies the realised uptake (adjusted for adherence and delays) by the population and unit change (\(\Delta q\)) to obtain the incremental quantity, and then multiplies quantity by price to get incremental spend. When exclusivity expires, the price drops to a generic level, and the next wave benchmarks either against the last on‑patent price or the generic depending on the comparator rule. The diagram below illustrates the main components and flows in the model.
+        </p>
+        <!-- Updated diagram to improve readability and avoid arrow overlap; generics removed and arrow direction corrected -->
+        <figure style="margin: 1rem auto; text-align: center; max-width: 650px;">
+            <img src="model_diagram_increased_vertical_spacing.png" alt="Flow diagram summarising the model's inputs, price setting, adoption, population and spend" style="width: 100%; height: auto; border: 1px solid #eee; border-radius: 4px;" />
+            <figcaption style="margin-top: 0.5rem; font-size: 0.9rem; color: #555;">
+                <strong>Figure&nbsp;1:</strong> Overview of the diffusion–impact model. Policy and input parameters feed the price‑setting module, which in turn influences adoption and population dynamics. These combine to produce treated quantities, and multiplying quantity by price yields annual spend.
+            </figcaption>
+        </figure>
+        <h3>Key outputs</h3>
+        <ul>
+            <li>\(\Delta Q_i\): incremental quantity (e.g., additional prescriptions) for cohort \(i\) vs. baseline.</li>
+            <li>\(\Delta S\): system‑wide spend change (vs. baseline), aggregated across cohorts.</li>
+        </ul>
+        <h3>Inputs (per cohort \(i\))</h3>
+        <ul>
+            <li>\(N_i\): eligible population size.</li>
+            <li>\(\mathrm{uptake}_i(t)\): adoption trajectory (0–1) over time \(t\).</li>
+            <li>\(\Delta q_i\): per‑person unit change (e.g., +1 Rx/year when adopted).</li>
+            <li>\(p_i\): unit price (list or net).</li>
+            <li>\(\lambda_i\): effectiveness factor (0–1) converting potential use into realised use (e.g., adherence, discontinuation).</li>
+            <li>\(d_i\): average delay to realise impact (months).</li>
+            <li>\(f_{\text{gen}}\): optional generic factor (0–1) scaling all cohorts’ realised impact (policy headwind).</li>
+        </ul>
+
+        <h3>Adoption &amp; uptake curves</h3>
+        <p>
+            Uptake curves in this simulator are specified as <strong>logistic</strong> (S‑shaped) functions of time. A logistic curve begins near zero at launch, increases slowly at first as awareness spreads, then rises steeply around a midpoint and eventually saturates at a maximum adoption level. Formally the adoption function for cohort \(i\) at time \(t\) can be written as:
+        </p>
+        <p style="text-align:center;">
+            \[\, \mathrm{uptake}_i(t) = A_{\max,i} \, \frac{1}{1 + e^{-r_i\,(t - m_i)}}\, \]
+        </p>
+        <p>
+            Here \(A_{\max,i}\) is the <em>maximum adoption</em>, \(r_i\) is the <em>adoption rate</em> (steepness) and \(m_i\) is the <em>adoption midpoint</em> (time to reach 50 % of the long‑run level). By adjusting these parameters you can explore faster or slower diffusion patterns and scenarios with different long‑run adoption ceilings. Although sometimes colloquially referred to as “logarithmic” curves, the shape used here is logistic.
+        </p>
+
+        <h3>Pricing based on the cost&#8209;effectiveness threshold</h3>
+        <p>
+            At each launch the price increment is derived from the cost‑effectiveness threshold \(\lambda\), the disease‑specific severity multiplier and the incremental QALY gain.  In particular the model calculates the on‑patent price for wave \(i\) as
+        </p>
+        <p style="text-align:center;">
+            \[\, P_i = P_{\text{comp}} + \lambda\,S_i\,\Delta Q_i - \Delta\text{Other}_i \,\]
+        </p>
+        <p>
+            where \(P_{\text{comp}}\) is the comparator price (either the previous on‑patent launch price or the previous generic price depending on the comparator rule), \(S_i\) is the severity multiplier, \(\Delta Q_i\) is the incremental QALY gain, and \(\Delta\text{Other}_i\) represents additional non‑drug costs or savings.  The cost‑effectiveness threshold \(\lambda\) and severity multipliers are inputs to the model, while the comparator price and resulting launch price are computed internally.
+        </p>
+        <p>
+            After the exclusivity period of \(E\) years the price falls to a generic level given by \(P_{i,\mathrm{gen}} = f_{\mathrm{gen}} P_i\), where \(f_{\mathrm{gen}}\) is the generic price factor.  Subsequent waves benchmark against either \(P_i\) or \(P_{i,\mathrm{gen}}\) depending on whether exclusivity has expired.  Thus the cost‑effectiveness threshold controls the allowable price increment but the final launch price emerges endogenously from the comparator rule and the generic pricing assumption.
+        </p>
+
+        <h3>Population &amp; incidence projection</h3>
+        <p>
+            The model tracks the number of eligible patients for each wave over time.  At baseline the eligible population is \(N_0\).  Each year prior to a new wave’s launch, the population grows by the incidence rate \(\mathrm{incidence}\), specified by the user.  In other words, before the first launch the population follows \(N(t+1) = N(t)\,(1 + \mathrm{incidence})\).  At the moment of a new wave \(i\) the user may also add a fixed number of new patients or a percentage of the current population.  These additional patients are assumed to start on the most recent innovation immediately.  The population for wave \(i\) is then allocated between waves according to the logistic uptake curves described above.  Patients who do not adopt the new treatment remain on their previous therapies until a later wave arrives.  The combination of baseline population \(N_0\), annual incidence growth and optional new‑patient additions determines the pool of eligible patients in each year.
+        </p>
+
+        <h3>Inputs versus calculated parameters</h3>
+        <p>
+            The simulator exposes many parameters to the user.  Key <em>inputs</em> include: the cost‑effectiveness threshold \(\lambda\), severity multipliers \(S_i\), incremental QALY gains \(\Delta Q_i\), non‑drug costs \(\Delta\mathrm{Other}_i\), the generic price factor \(f_{\mathrm{gen}}\), exclusivity length \(E\), the base population \(N_0\), the annual incidence rate, the maximum adoption level \(A_{\max,i}\), the adoption rate \(r_i\), the adoption midpoint \(m_i\), the comparator rule (recursive vs. generic) and any new‑patient additions at launch.  Given these inputs, the model <em>calculates</em>: the launch prices \(P_i\), the generic prices \(P_{i,\mathrm{gen}}\), the standard‑of‑care price in each year, the realised uptake \(a_i(t)\), the patient counts \(N_i(t)\), the incremental quantities \(\Delta Q_i(t)\) and the resulting annual and cumulative spend.
+        </p>
+        <h3>Computation</h3>
+        <p><strong>Step 1 – Realised adoption:</strong></p>
+        <p>\[
+            a_i(t) = \mathrm{uptake}_i(t - d_i) \cdot \lambda_i \cdot f_{\text{gen}}
+        \]</p>
+        <p><strong>Step 2 – Incremental quantity:</strong></p>
+        <p>\[
+            \Delta Q_i(t) = N_i \cdot a_i(t) \cdot \Delta q_i
+        \]</p>
+        <p><strong>Step 3 – Spend impact:</strong></p>
+        <p>\[
+            \Delta S_i(t) = \Delta Q_i(t) \cdot p_i \quad\Rightarrow\quad \Delta S(t) = \sum_i \Delta S_i(t)
+        \]</p>
+        <h3>Notes</h3>
+        <ul>
+            <li><em>Ramp‑up and ceilings:</em> choose a parametric form for \(\mathrm{uptake}_i(t)\) (e.g., logistic, piecewise linear) to model launch &amp; saturation.</li>
+            <li><em>Delays \(d_i\):</em> shift the adoption curve right to represent initiation or access delays.</li>
+            <li><em>Prices:</em> list prices are used for transparency; in sensitivity analysis substitute net prices or apply discounts at the row level.</li>
+            <li><em>Aggregation:</em> you can report cumulative sums \(\sum_{\tau \le t}\Delta S(\tau)\) or per‑period flows \(\Delta S(t)\).</li>
+        </ul>
+        <h3>Parameter mapping (UI → symbols)</h3>
+        <ul>
+            <li>“Eligible patients” → \(N_i\)</li>
+            <li>“Uptake curve / ramp” → \(\mathrm{uptake}_i(t)\)</li>
+            <li>“Effectiveness / adherence” → \(\lambda_i\)</li>
+            <li>“Delay to effect” → \(d_i\)</li>
+            <li>“Unit change” → \(\Delta q_i\)</li>
+            <li>“Unit price” → \(p_i\)</li>
+            <li>“Generic policy factor” → \(f_{\text{gen}}\)</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+// Tab navigation helper. Show the selected tab and hide others.
+function showTab(id) {
+    const tabs = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => {
+        tab.style.display = (tab.id === id) ? 'block' : 'none';
+    });
+}
+// Set default active tab on page load
+document.addEventListener('DOMContentLoaded', () => {
+    showTab('tab1');
+});
+
+// Parameters for the model. These are defined as mutable variables so that
+// they can be updated from user inputs. The default values correspond to
+// the "default" disease group.  Entry years are generated dynamically based
+// on the chosen innovation frequency or custom list, so the number of waves
+// can extend across the full 50‑year horizon.
+// Default launch years reflect an eight‑year innovation cycle across a 50‑year horizon.
+// Starting at year 1, new waves arrive every eight years (1, 9, 17, 25, 33, 41, 49).
+let entryYears = [1, 9, 17, 25, 33, 41, 49];
+// Default parameters calibrated to a lipid‑lowering therapy example:
+// Each wave delivers an incremental QALY gain of about 0.14, reflecting
+// evidence from intensive statin therapy in coronary artery disease
+// (see JAHA 2020 study).  We assume medium severity throughout (multiplier 1.2).
+// The incremental non‑drug costs (dOther) are set so that the value‑based
+// price increment matches the observed drug cost difference (~£3,114 per
+// patient) when the threshold is £25k/QALY: dOther = λ*S*ΔQ − ΔDrug = 4,200 − 3,114 ≈ 1,100.
+// Provide default arrays sized to match the seven waves. Each wave delivers
+// an incremental QALY gain of 0.14 (medium severity), incurs ~£1,100 of
+// additional non‑drug costs and has a severity multiplier of 1.2.
+let deltaQ = [0.14, 0.14, 0.14, 0.14, 0.14, 0.14, 0.14];
+let dOther = [1100.0, 1100.0, 1100.0, 1100.0, 1100.0, 1100.0, 1100.0];
+// Default severity multipliers follow NICE guidance: 1.2 for medium severity.
+let severity = [1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2];
+let exclusivityYears = 15;
+// Recalibrated generic factor to reflect larger price drop for generics.
+let genericFactor = 0.10;
+// Recalibrated baseline generic price to approximate the cost of early therapies (e.g. generic statins/metformin).
+let baselineGenericPrice = 20.0;
+// Base patient population (formerly totalPatientsPerWave).  This value
+// represents the size of the population eligible for treatment prior to
+// the first innovation.  It remains fixed over time and is cannibalised
+// by subsequent waves.
+// Base patient population before the first wave.  This value is in the
+// selected population units (default: units).  It will be overwritten
+// with group‑specific defaults when the page loads.
+let totalPatientsPerWave = 800;
+// Additional patients added with each wave.  These patients are assumed
+// to adopt the most recent innovation immediately.  A value of zero
+// indicates no population growth.
+// Replacement rate: fraction of patients switching to the new innovation at
+// each launch.  Expressed as a decimal (e.g. 0.8 for 80 %).  Users can
+// adjust this via the replacementRate input (in percentage).  See
+// simulateSpendReplacement for details.
+let replacementRate = 0.8;
+// Mode for adding new patients at each wave: 'none', 'volume' or
+// 'percentage'.  In 'volume' mode a fixed number of patients is added;
+// in 'percentage' mode a percentage of the current treated population
+// is added.  The user selects the mode via the newPatientsMode input.
+let newPatientsMode = 'none';
+// Number of new patients added in absolute terms when newPatientsMode
+// is 'volume'.  This value is taken from the newPatientsVolume input.
+let newPatientsVolume = 0;
+// Fraction of new patients added as a percentage when newPatientsMode
+// is 'percentage'.  For example, a value of 0.05 means a 5 % increase.
+let newPatientsPercent = 0.0;
+
+// Population unit size.  In individuals mode each unit represents one person
+// (populationUnitSize = 1).  If the user selects “units” in the UI, we
+// interpret each unit as 10,000 individuals and set populationUnitSize
+// to 10,000 in updatePopulationUnits().  We default to individuals here
+// so the model uses absolute patient counts out of the box.
+let populationUnitSize = 1;
+
+// Annual incidence rate for the disease population.  This determines how
+// quickly the baseline patient population grows each year before new
+// interventions are introduced.  Specified as a decimal fraction (e.g.,
+// 0.02 for 2 % growth).  The user enters this value as a percentage in
+// the interface and it is converted to a fraction in updateOutputs().
+let incidenceRate = 0.0;
+
+// Parameters controlling the logistic adoption curve for each new
+// intervention.  adoptionRate sets the steepness of the curve—higher
+// values lead to faster uptake—while adoptionMidpoint is the year
+// offset relative to the launch when adoption reaches 50 % of its
+// eventual maximum.  The adoption curve saturates at the
+// replacementRate (maximum adoption share).  Users can adjust these
+// values via the adoptionRate and adoptionMidpoint inputs.
+let adoptionRate = 0.6;
+let adoptionMidpoint = 3.0;
+
+// Predefined disease group parameter sets. Users can select one of these
+// groups to prefill the QALY gains, severity multipliers and non‑drug
+// costs. The "default" group matches the initial values. Feel free
+// to adjust or expand these definitions.
+const diseaseGroups = {
+    default: {
+        // Default group calibrated to intensive lipid‑lowering therapy (e.g.
+        // high‑intensity statins for coronary artery disease). Each wave gains
+        // approximately 0.14 QALYs and uses the medium severity multiplier (1.2).
+        // The incremental non‑drug cost (dOther) is set to ~£1,100 per patient so
+        // that the resulting drug price increment (λ×S×ΔQ − ΔOther) matches the
+        // observed incremental drug cost (~£3,100) when λ=25,000. You can
+        // override these arrays via the Custom group if needed.
+        deltaQ: [0.14, 0.14, 0.14, 0.14, 0.14, 0.14],
+        severity: [1.2, 1.2, 1.2, 1.2, 1.2, 1.2],
+        dOther: [1100.0, 1100.0, 1100.0, 1100.0, 1100.0, 1100.0]
+    }
+    ,
+    // Anti‑obesity therapy calibrated to modern weight‑loss pharmacotherapies
+    // (e.g. semaglutide, tirzepatide).  Data from cost‑effectiveness analyses
+    // suggest incremental QALY gains between 0.18 and 0.40 and incremental
+    // costs in the low thousands of pounds.  We assign a
+    // medium to high severity multiplier (1.2–1.3) reflecting high unmet need
+    // and potentially severe obesity.  Non‑drug costs (dOther) are set to
+    // reflect additional monitoring and administration associated with
+    // injectable therapies, yielding price increments of roughly £3–6k when
+    // λ=£25k and severity multipliers are applied.
+    obesity: {
+        deltaQ:   [0.18, 0.20, 0.22, 0.25, 0.30, 0.35, 0.40],
+        severity: [1.2, 1.2, 1.3, 1.3, 1.3, 1.3, 1.3],
+        dOther:   [2000, 2000, 2200, 2500, 2800, 3000, 3200]
+    },
+
+    // Anti‑diabetes therapy calibrated to sodium–glucose co‑transporter‑2
+    // inhibitors (SGLT2i) and other modern diabetes agents.  Cost‑effectiveness
+    // studies report incremental QALY gains of roughly 1.0 over a lifetime
+    // horizon and incremental costs around €5k (£4–5k).  We use
+    // smaller per‑wave gains (0.10–0.22) to represent incremental improvements
+    // between successive waves of innovation.  Severity multipliers are near
+    // unity (1.0–1.2) reflecting chronic but manageable disease.  Non‑drug
+    // costs increase modestly across waves to capture additional monitoring and
+    // comorbidity management.
+    diabetes: {
+        deltaQ:   [0.10, 0.12, 0.14, 0.16, 0.18, 0.20, 0.22],
+        severity: [1.0, 1.05, 1.1, 1.1, 1.15, 1.15, 1.2],
+        dOther:   [1000, 1100, 1200, 1300, 1400, 1500, 1600]
+    }
+};
+
+// Default population and incidence settings by therapy.  These values are used
+// to pre-fill the Base patient population and Incidence rate inputs when
+// the user selects a predefined disease group.  Populations are measured in
+// actual individuals (not “units”) to make the model more intuitive for
+// users who prefer working with absolute patient counts.  For example,
+// the lipid‑lowering group starts with roughly eight million people.  Use
+// the Population and disease dynamics panel to adjust these values if you
+// wish to explore alternative scenarios.
+const groupDefaults = {
+    // Lipid‑lowering therapy serves as the default calibration.  We
+    // approximate the eligible population at about eight million people.
+    // The incidence rate of 2.5 % reflects slow growth in cardiovascular risk.
+    default: { patients: 8000000, incidence: 0.025 },
+    // Anti‑obesity therapy: fewer patients require pharmacological therapy
+    // than lipid‑lowering, so we set the baseline to 4.5 million people.
+    // Annual incidence growth is lower at 1.5 %.
+    obesity: { patients: 4500000, incidence: 0.015 },
+    // Anti‑diabetes therapy: type 2 diabetes affects a comparable number of
+    // people as dyslipidaemia, so we also start at eight million but assume
+    // a faster incidence growth of 6 % reflecting rapid increases in
+    // diabetes prevalence.
+    diabetes: { patients: 8000000, incidence: 0.06 }
+};
+
+// -------------------------------------------------------------------------
+//  GIF playback control
+//  ------------------------------------------------------------------------
+//  In earlier versions we attempted to stop GIFs after a single play by swapping
+//  in static images and using timers.  Users reported broken links and inconsistent
+//  behaviour, so this playback control logic has been removed.  GIFs now play
+//  normally and loop according to their internal settings.
+
+// Helper function to compute launch and generic prices
+function computeLaunchPrices(threshold, recursive) {
+    // Compute the launch and generic prices for each wave.  In the recursive
+    // scenario the comparator is usually the previous wave’s on‑patent launch
+    // price (creating a ratchet).  However, if the previous wave’s exclusivity
+    // has expired before the next wave arrives, the comparator resets to the
+    // previous wave’s generic price.  In the generic comparator scenario the
+    // comparator is always the previous generic price (or the baseline generic
+    // price for the first wave).  This means that when the exclusivity period
+    // is shorter than the gap between launches, the recursive and generic
+    // scenarios converge.
+    const launchPrices = [];
+    const genericPrices = [];
+    for (let i = 0; i < entryYears.length; i++) {
+        const incrementalCost = threshold * severity[i] * deltaQ[i] - dOther[i];
+        let comparatorPrice;
+        if (recursive) {
+            if (i === 0) {
+                // First wave always benchmarks against the baseline generic price
+                comparatorPrice = baselineGenericPrice;
+            } else {
+                // Compute the time gap between this launch and the previous launch
+                const gap = entryYears[i] - entryYears[i - 1];
+                // If the gap is shorter than the exclusivity period, use the previous
+                // on‑patent launch price; otherwise use the previous generic price.
+                if (gap < exclusivityYears) {
+                    comparatorPrice = launchPrices[i - 1];
+                } else {
+                    comparatorPrice = launchPrices[i - 1] * genericFactor;
+                }
+            }
+        } else {
+            // Generic comparator: always use the previous generic price; for the
+            // first wave there is no prior launch, so use the baseline generic price.
+            if (i === 0) {
+                comparatorPrice = baselineGenericPrice;
+            } else {
+                comparatorPrice = launchPrices[i - 1] * genericFactor;
+            }
+        }
+        const price = comparatorPrice + incrementalCost;
+        launchPrices.push(price);
+        genericPrices.push(price * genericFactor);
+    }
+    return { launchPrices, genericPrices };
+}
+
+// Compute standard of care price path
+function computeSocPricePath(launchPrices, genericPrices, horizon = 20) {
+    const pricePath = [];
+    for (let year = 0; year <= horizon; year++) {
+        let price = baselineGenericPrice;
+        for (let i = 0; i < entryYears.length; i++) {
+            if (year >= entryYears[i]) {
+                const yearsSinceLaunch = year - entryYears[i];
+                if (yearsSinceLaunch < exclusivityYears) {
+                    price = launchPrices[i];
+                } else {
+                    price = genericPrices[i];
+                }
+            }
+        }
+        pricePath.push(price);
+    }
+    return pricePath;
+}
+
+// Logistic adoption‑based spend simulation
+// This function calculates annual and cumulative spend assuming that the patient
+// population grows each year according to an incidence rate and that, following
+// the launch of each new wave, patients adopt the innovation gradually via a
+// logistic uptake curve.  Adoption saturates at the maximum adoption
+// (replacementRate) and is distributed across waves proportionally to their
+// logistic functions.  New patients (from the incidence rate and optional
+// wave‑specific growth) are included in the baseline population and are
+// allocated across innovations according to the same adoption shares.
+function simulateSpendLogistic(launchPrices, genericPrices, horizon = 50) {
+    const numWaves = entryYears.length;
+    // Precompute baseline population for each year.  The baseline population grows
+    // each year by the incidence rate.  At the moment a wave launches, additional
+    // patients may be added according to the new patients settings.  These
+    // additions are treated as part of the overall patient population and are
+    // allocated across innovations via the adoption shares.
+    const baselinePop = new Array(horizon + 1).fill(0);
+    baselinePop[0] = totalPatientsPerWave;
+    for (let t = 1; t <= horizon; t++) {
+        baselinePop[t] = baselinePop[t - 1] * (1 + incidenceRate);
+        // If any wave launches this year, add new patients to the baseline
+        for (let w = 0; w < numWaves; w++) {
+            if (entryYears[w] === t) {
+                let added = 0;
+                if (newPatientsMode === 'volume') {
+                    added = newPatientsVolume;
+                } else if (newPatientsMode === 'percentage') {
+                    added = baselinePop[t] * newPatientsPercent;
+                }
+                baselinePop[t] += added;
+            }
+        }
+    }
+    // Precompute logistic adoption values for each wave and year.  The logistic
+    // function returns a value between 0 and 1 and is defined as 1/(1+exp(-k*(x - m))).
+    const logisticFuncs = Array.from({ length: numWaves }, () => new Array(horizon + 1).fill(0));
+    for (let w = 0; w < numWaves; w++) {
+        for (let t = 0; t <= horizon; t++) {
+            if (t >= entryYears[w]) {
+                const x = t - entryYears[w];
+                logisticFuncs[w][t] = 1 / (1 + Math.exp(-adoptionRate * (x - adoptionMidpoint)));
+            } else {
+                logisticFuncs[w][t] = 0;
+            }
+        }
+    }
+    const annualSpends = [];
+    let cumulative = 0.0;
+    for (let t = 0; t <= horizon; t++) {
+        // Convert the baseline population to the number of individuals.  In
+        // units mode baselinePop[t] is the number of units (1 unit ≈10,000
+        // individuals), so multiply by populationUnitSize to obtain the
+        // number of people.  In individuals mode baselinePop[t] already
+        // represents the number of people and populationUnitSize is 1.
+        const popCount = baselinePop[t] * populationUnitSize;
+        // Compute unnormalised adoption values (f values) for each wave
+        let sum_f = 0.0;
+        const f_values = new Array(numWaves).fill(0);
+        for (let w = 0; w < numWaves; w++) {
+            const f = logisticFuncs[w][t];
+            f_values[w] = f;
+            sum_f += f;
+        }
+        // Determine shares: baseline share and shares for each wave
+        let baselineShare = 1.0;
+        const shares = new Array(numWaves).fill(0);
+        if (sum_f > 0) {
+            baselineShare = 1.0 - replacementRate;
+            for (let w = 0; w < numWaves; w++) {
+                shares[w] = replacementRate * (f_values[w] / sum_f);
+            }
+        } else {
+            baselineShare = 1.0;
+        }
+        // Compute spend for year t
+        let yearSpend = 0.0;
+        // Baseline patients pay the baseline generic price per patient
+        yearSpend += baselineShare * popCount * baselineGenericPrice;
+        // Patients on each wave pay the wave’s price per patient (on‑patent or generic)
+        for (let w = 0; w < numWaves; w++) {
+            const share = shares[w];
+            if (share > 0) {
+                const yearsSince = t - entryYears[w];
+                let price;
+                if (yearsSince >= 0 && yearsSince < exclusivityYears) {
+                    price = launchPrices[w];
+                } else {
+                    price = genericPrices[w];
+                }
+                yearSpend += share * popCount * price;
+            }
+        }
+        annualSpends.push(yearSpend);
+        cumulative += yearSpend;
+    }
+    return { annualSpends, cumulative };
+}
+
+// Format numbers with commas and two decimals
+function formatCurrency(value) {
+    // Format a number with comma thousands separators and no decimal places.  This yields
+    // strings like “52,900” rather than “52900.00”.  To add the currency symbol, prepend
+    // “£” when inserting into the HTML.
+    return value.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+// Format patient counts with thousands separators and no decimals
+function formatCount(value) {
+    return Math.round(value).toLocaleString('en-GB', { maximumFractionDigits: 0 });
+}
+
+/**
+ * Draw an animated stacked bar showing how patients reallocate across waves.
+ * Each frame represents the state after a new innovation arrives.  The base
+ * population starts on the "Baseline" segment.  At each wave, a fraction
+ * (replacementRate) of all current patients switches to the new therapy and
+ * any specified new patients are added.  Remaining patients stay on older
+ * treatments.  This visualises the replacement dynamics described in the
+ * model assumptions.
+ */
+function drawAdoptionAnimation() {
+    // Build a logistic adoption animation that shows how the patient mix evolves over
+    // the 50‑year horizon.  Each frame corresponds to a year and depicts the
+    // distribution of the total patient population across the baseline and each
+    // launched wave.  The shares are determined by logistic uptake functions
+    // and saturate at the maximum adoption level (replacementRate).
+    const K = entryYears.length;
+    const horizon = 50;
+    if (K === 0) {
+        Plotly.purge('adoptionAnimation');
+        return;
+    }
+    // Define segment labels: baseline and one label per wave
+    const labels = ['Baseline'];
+    for (let i = 0; i < K; i++) {
+        labels.push('Wave ' + (i + 1));
+    }
+    // Precompute baseline population growth with incidence and new patient additions
+    const baselinePop = new Array(horizon + 1).fill(0);
+    baselinePop[0] = totalPatientsPerWave;
+    for (let t = 1; t <= horizon; t++) {
+        baselinePop[t] = baselinePop[t - 1] * (1 + incidenceRate);
+        for (let w = 0; w < K; w++) {
+            if (entryYears[w] === t) {
+                let added = 0;
+                if (newPatientsMode === 'volume') {
+                    added = newPatientsVolume;
+                } else if (newPatientsMode === 'percentage') {
+                    added = baselinePop[t] * newPatientsPercent;
+                }
+                baselinePop[t] += added;
+            }
+        }
+    }
+    // Precompute logistic adoption values
+    const logisticFuncs = Array.from({ length: K }, () => new Array(horizon + 1).fill(0));
+    for (let w = 0; w < K; w++) {
+        for (let t = 0; t <= horizon; t++) {
+            if (t >= entryYears[w]) {
+                const x = t - entryYears[w];
+                logisticFuncs[w][t] = 1 / (1 + Math.exp(-adoptionRate * (x - adoptionMidpoint)));
+            } else {
+                logisticFuncs[w][t] = 0;
+            }
+        }
+    }
+    const frames = [];
+    const sliderSteps = [];
+    for (let t = 0; t <= horizon; t++) {
+        // Compute adoption shares for this year
+        let sum_f = 0.0;
+        const f_values = new Array(K).fill(0);
+        for (let w = 0; w < K; w++) {
+            const f = logisticFuncs[w][t];
+            f_values[w] = f;
+            sum_f += f;
+        }
+        let baselineShare = 1.0;
+        const shares = new Array(K).fill(0);
+        if (sum_f > 0) {
+            baselineShare = 1.0 - replacementRate;
+            for (let w = 0; w < K; w++) {
+                shares[w] = replacementRate * (f_values[w] / sum_f);
+            }
+        }
+        const total = baselinePop[t];
+        const counts = [];
+        counts.push(baselineShare * total);
+        for (let w = 0; w < K; w++) {
+            counts.push(shares[w] * total);
+        }
+        frames.push({
+            name: 'Year ' + t,
+            data: counts.map(yVal => ({ y: [yVal] }))
+        });
+        sliderSteps.push({
+            label: '' + t,
+            method: 'animate',
+            args: [[ 'Year ' + t ], { mode: 'immediate', transition: { duration: 200 }, frame: { duration: 200 } }]
+        });
+    }
+    const initY = frames[0].data.map(d => d.y[0]);
+    const traces = labels.map((name, j) => ({
+        type: 'bar',
+        name: name,
+        x: ['Patients'],
+        y: [initY[j]],
+        hovertemplate: `${name}: %{y:,}<extra></extra>`
+    }));
+    const layout = {
+        barmode: 'stack',
+        margin: { t: 30, r: 20, b: 50, l: 60 },
+        legend: { orientation: 'h', y: -0.20 },
+        yaxis: { title: 'Patients', separatethousands: true, rangemode: 'tozero' },
+        xaxis: { showticklabels: false },
+        updatemenus: [{
+            type: 'buttons',
+            direction: 'left',
+            x: 0.0, y: 1.25, xanchor: 'left', yanchor: 'top',
+            buttons: [
+                { label: '▶︎ Play', method: 'animate', args: [null, { fromcurrent: true, frame: { duration: 300, redraw: true }, transition: { duration: 200 } }] },
+                { label: '⏹︎ Pause', method: 'animate', args: [[ null ], { mode: 'immediate', frame: { duration: 0 }, transition: { duration: 0 } }] }
+            ]
+        }],
+        sliders: [{
+            x: 0.0, y: 1.15, xanchor: 'left', len: 1.0,
+            currentvalue: { prefix: 'Year ', visible: true },
+            pad: { t: 10, b: 0 },
+            steps: sliderSteps
+        }]
+    };
+    Plotly.newPlot('adoptionAnimation', traces, layout, { responsive: true }).then(() => {
+        Plotly.addFrames('adoptionAnimation', frames);
+    });
+}
+
+// Handle disease group selection. Show/hide custom input fields when
+// switching between predefined and custom groups.
+function updateDiseaseGroup() {
+    const group = document.getElementById('diseaseGroup').value;
+    const customInputs = document.getElementById('customGroupInputs');
+    if (group === 'custom') {
+        customInputs.style.display = 'block';
+    } else {
+        customInputs.style.display = 'none';
+        // Pre-load the selected group’s parameters into the global arrays.
+        if (diseaseGroups[group]) {
+            // Use slice() to copy arrays rather than reference
+            deltaQ = diseaseGroups[group].deltaQ.slice();
+            severity = diseaseGroups[group].severity.slice();
+            dOther = diseaseGroups[group].dOther.slice();
+        }
+        // Apply default population and incidence settings for the selected
+        // therapy.  We also update the corresponding input fields so that
+        // users see the new defaults.  The incidence value is shown as a
+        // percentage in the input, so multiply by 100.
+        if (groupDefaults[group]) {
+            // Determine whether we’re working in units or actual individuals.  In
+            // “individuals” mode we use the absolute patient count from
+            // groupDefaults; in “units” mode we divide the absolute count by
+            // 10,000 to convert to units.
+            const unitMode = document.getElementById('populationUnits')?.value || 'individuals';
+            if (unitMode === 'units') {
+                totalPatientsPerWave = groupDefaults[group].patients / 10000;
+            } else {
+                totalPatientsPerWave = groupDefaults[group].patients;
+            }
+            incidenceRate = groupDefaults[group].incidence;
+            const popInput = document.getElementById('patientsPerWave');
+            if (popInput) {
+                popInput.value = unitMode === 'units'
+                    ? (groupDefaults[group].patients / 10000)
+                    : groupDefaults[group].patients;
+            }
+            const incInput = document.getElementById('incidenceRate');
+            if (incInput) incInput.value = (groupDefaults[group].incidence * 100).toFixed(2).replace(/\.00$/, '');
+        }
+        // Update the population dynamics illustration to match the selected
+        // therapy.  Each therapy has its own GIF showing projected population
+        // growth (therapy_lipid.gif, therapy_obesity.gif, therapy_diabetes.gif).
+        const popImg = document.getElementById('populationDynamicsImg');
+        if (popImg) {
+            // Determine the GIF to display for the selected therapy
+            let gifName;
+            if (group === 'obesity') {
+                gifName = 'therapy_obesity.gif';
+            } else if (group === 'diabetes') {
+                gifName = 'therapy_diabetes.gif';
+            } else {
+                gifName = 'therapy_lipid.gif';
+            }
+            // Only change the src if we are switching to a different GIF
+            if (!popImg.src || !popImg.src.endsWith(gifName)) {
+                popImg.src = gifName;
+                // Do not schedule any timer to replace the GIF.  In this version
+                // GIFs play according to their own internal loop settings.
+            }
+        }
+    }
+}
+
+// Update population unit size and base population when the units selector changes.
+function updatePopulationUnits() {
+    // Read the selected mode from the populationUnits control.  If no control
+    // exists or no value is set, default to “individuals”.
+    const unitMode = document.getElementById('populationUnits')?.value || 'individuals';
+    // Set the population unit size: 1 for individuals, 10,000 for units.
+    populationUnitSize = unitMode === 'units' ? 10000 : 1;
+    // Reapply the current disease group defaults to adjust the base population
+    // and incidence values to match the selected unit mode.  This will update
+    // totalPatientsPerWave and input values accordingly.
+    updateDiseaseGroup();
+}
+
+// Update the innovation waves illustration when the frequency selector changes.  The
+// mapping between frequency values and GIF filenames is defined here.  If a
+// custom frequency is selected (or an unrecognised value), a generic demo
+// illustration is shown instead.  The GIFs automatically play through once
+// when inserted into the page; there is no looping control for GIFs, so users
+// will see one full iteration before the animation stops naturally.
+function updateInnovationGif() {
+    const freqSelector = document.getElementById('innovationFrequency');
+    const img = document.getElementById('innovationWavesImg');
+    if (!img || !freqSelector) return;
+    const val = freqSelector.value;
+    let src;
+    switch (val) {
+        case '3':
+            src = 'innovation_3yr_waves.gif';
+            break;
+        case '5':
+            src = 'innovation_5yr_waves.gif';
+            break;
+        case '8':
+            src = 'innovation_8yr_waves.gif';
+            break;
+        case '10':
+            src = 'innovation_10yr_waves.gif';
+            break;
+        default:
+            // For custom or unknown values, use a placeholder demo
+            src = 'innovation_waves_demo.gif';
+            break;
+    }
+    // If the source is already set to the desired GIF, do nothing. Otherwise
+    // update the src to trigger the animation. When loading a new GIF, clear
+    // any existing timer and schedule a swap to the static PNG after its
+    // duration so the animation does not loop. This prevents the GIF from
+    // replaying when the same frequency is selected again.
+    if (img.src && img.src.endsWith(src)) return;
+    // Update to the selected GIF
+    img.src = src;
+    // In this version we do not schedule any timer to replace the GIF.  The
+    // animation will play and loop according to the GIF file's own settings.
+}
+
+// Attach event listener for disease group changes after the DOM loads
+window.addEventListener('DOMContentLoaded', function() {
+    const groupSelector = document.getElementById('diseaseGroup');
+    if (groupSelector) {
+        groupSelector.addEventListener('change', updateDiseaseGroup);
+    }
+
+    // Add event listener for innovation frequency changes to show/hide the
+    // custom launch years input. When the frequency is set to 'custom', the
+    // text input for comma‑separated launch years is displayed.
+    const freqSelector = document.getElementById('innovationFrequency');
+    const customLaunchDiv = document.getElementById('customLaunchInputs');
+    if (freqSelector) {
+        // When the frequency changes, update the custom launch input visibility and
+        // refresh the innovation waves illustration accordingly.
+        freqSelector.addEventListener('change', function() {
+            if (customLaunchDiv) {
+                customLaunchDiv.style.display = (freqSelector.value === 'custom') ? 'block' : 'none';
+            }
+            updateInnovationGif();
+        });
+        // Set initial visibility and illustration on page load
+        if (customLaunchDiv) {
+            customLaunchDiv.style.display = (freqSelector.value === 'custom') ? 'block' : 'none';
+        }
+        updateInnovationGif();
+    }
+
+    // Attach event listener for population units.  When the user switches
+    // between units and actual individuals, update the population unit size
+    // and reset the base population accordingly.
+    const unitSelector = document.getElementById('populationUnits');
+    if (unitSelector) {
+        unitSelector.addEventListener('change', function() {
+            updatePopulationUnits();
+        });
+        // Set the initial population unit size on page load
+        updatePopulationUnits();
+    }
+
+    // Show or hide the new patient inputs based on selection of newPatientsMode.
+    const newPatientsModeSelect = document.getElementById('newPatientsMode');
+    const volumeDiv = document.getElementById('newPatientsVolumeDiv');
+    const percentDiv = document.getElementById('newPatientsPercentDiv');
+    function updateNewPatientsInputs() {
+        const mode = newPatientsModeSelect ? newPatientsModeSelect.value : 'none';
+        if (mode === 'volume') {
+            if (volumeDiv) volumeDiv.style.display = 'block';
+            if (percentDiv) percentDiv.style.display = 'none';
+        } else if (mode === 'percentage') {
+            if (volumeDiv) volumeDiv.style.display = 'none';
+            if (percentDiv) percentDiv.style.display = 'block';
+        } else {
+            if (volumeDiv) volumeDiv.style.display = 'none';
+            if (percentDiv) percentDiv.style.display = 'none';
+        }
+    }
+    if (newPatientsModeSelect) {
+        newPatientsModeSelect.addEventListener('change', updateNewPatientsInputs);
+    }
+    // Initialise the visibility of new patient input fields
+    updateNewPatientsInputs();
+
+    // The adoption animation has been removed; population dynamics are illustrated via static GIFs.
+    // drawAdoptionAnimation();
+
+    // Set default population and incidence values when the page loads based on the
+    // initially selected disease group.  Without this call, the Base
+    // patient population and incidence rate inputs would reflect the HTML
+    // defaults rather than the therapy‑specific defaults defined in
+    // groupDefaults.  Calling updateDiseaseGroup() here pre-fills the
+    // inputs and updates the population dynamics GIF accordingly.
+    updateDiseaseGroup();
+});
+
+// Draw a simple line chart on a canvas
+// Draw multiple series on a line chart with a legend
+function drawMultiLineChart(canvasId, seriesArray, labelsArray, title) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Increase padding on the left to accommodate large y‑axis labels
+    const padding = 60;
+    const width = canvas.width - padding * 2;
+    const height = canvas.height - padding * 2;
+    // Compute global min and max across all series
+    let allValues = [];
+    seriesArray.forEach(series => { allValues = allValues.concat(series); });
+    const maxVal = Math.max(...allValues);
+    const minVal = Math.min(...allValues);
+    const range = maxVal - minVal;
+    // Draw axes
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1;
+    // y-axis
+    ctx.beginPath();
+    ctx.moveTo(padding, padding);
+    ctx.lineTo(padding, canvas.height - padding);
+    ctx.stroke();
+    // x-axis
+    ctx.beginPath();
+    ctx.moveTo(padding, canvas.height - padding);
+    ctx.lineTo(canvas.width - padding, canvas.height - padding);
+    ctx.stroke();
+    // Define colours for up to four series
+    const colours = ['#2a4a7b', '#b44949', '#4c8ed9', '#d98e04'];
+    // Draw each series
+    seriesArray.forEach((data, sIdx) => {
+        const colour = colours[sIdx % colours.length];
+        ctx.strokeStyle = colour;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        data.forEach((val, index) => {
+            const x = padding + (width * index) / (data.length - 1);
+            const y = padding + (height * (1 - (val - minVal) / (range || 1)));
+            if (index === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+    });
+    // Draw axis labels
+    ctx.fillStyle = '#333';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    // x-axis labels (years)
+    const numPoints = seriesArray[0].length;
+    for (let i = 0; i < numPoints; i++) {
+        const x = padding + (width * i) / (numPoints - 1);
+        ctx.fillText(i.toString(), x, canvas.height - padding + 15);
+    }
+    // y-axis labels (min and max)
+    ctx.textAlign = 'right';
+    ctx.fillText(formatCurrency(maxVal), padding - 5, padding);
+    ctx.fillText(formatCurrency(minVal), padding - 5, canvas.height - padding);
+    // Chart title
+    ctx.textAlign = 'center';
+    ctx.fillText(title, canvas.width / 2, padding - 10);
+    // Draw legend
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'left';
+    let legendX = canvas.width - padding + 10;
+    let legendY = padding;
+    labelsArray.forEach((lab, idx) => {
+        const colour = colours[idx % colours.length];
+        // Draw line segment
+        ctx.strokeStyle = colour;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(legendX, legendY + 6);
+        ctx.lineTo(legendX + 20, legendY + 6);
+        ctx.stroke();
+        // Draw label
+        ctx.fillStyle = '#333';
+        ctx.fillText(lab, legendX + 25, legendY + 10);
+        legendY += 15;
+    });
+}
+
+function updateOutputs() {
+    // Ensure the population unit size reflects the current selection before
+    // reading inputs.  This updates populationUnitSize and adjusts the base
+    // population if necessary.
+    updatePopulationUnits();
+
+    const thresholdInput = document.getElementById('threshold');
+    const thresholdValue = parseFloat(thresholdInput.value);
+    if (isNaN(thresholdValue) || thresholdValue <= 0) {
+        alert('Please enter a positive numeric threshold.');
+        return;
+    }
+    // Update global assumptions from user inputs
+    const baselineInput = parseFloat(document.getElementById('baselineGenericPrice').value);
+    // Accept any real number for the baseline generic price.  As long as the
+    // user enters a valid numeric value, assign it directly without imposing
+    // non‑negativity constraints.  Negative or extremely large values may
+    // produce unrealistic results but are permitted for exploration.
+    if (!isNaN(baselineInput)) {
+        baselineGenericPrice = baselineInput;
+    }
+    const genericFactorInput = parseFloat(document.getElementById('genericFactor').value);
+    // Accept any real number for the generic price factor.  This allows
+    // fractions, decimals greater than one, and even negative numbers.  No
+    // constraint is imposed here, but nonsensical values may produce
+    // unexpected outputs.
+    if (!isNaN(genericFactorInput)) {
+        genericFactor = genericFactorInput;
+    }
+    const exclusivityInput = parseInt(document.getElementById('exclusivityYears').value);
+    if (!isNaN(exclusivityInput) && exclusivityInput > 0) {
+        exclusivityYears = exclusivityInput;
+    }
+    const patientsInput = parseInt(document.getElementById('patientsPerWave').value);
+    if (!isNaN(patientsInput) && patientsInput > 0) {
+        totalPatientsPerWave = patientsInput;
+    }
+    // Read replacement rate (percentage) and convert to a fraction between 0 and 1
+    const replInput = parseFloat(document.getElementById('replacementRate').value);
+    if (!isNaN(replInput) && replInput >= 0 && replInput <= 100) {
+        replacementRate = replInput / 100.0;
+    }
+    // Read new patients mode and associated value
+    const npModeSelect = document.getElementById('newPatientsMode');
+    if (npModeSelect) {
+        newPatientsMode = npModeSelect.value;
+    }
+    // Reset new patients values
+    newPatientsVolume = 0;
+    newPatientsPercent = 0;
+    if (newPatientsMode === 'volume') {
+        const npVolInput = parseFloat(document.getElementById('newPatientsVolume').value);
+        if (!isNaN(npVolInput) && npVolInput >= 0) {
+            newPatientsVolume = npVolInput;
+        }
+    } else if (newPatientsMode === 'percentage') {
+        const npPercInput = parseFloat(document.getElementById('newPatientsPercent').value);
+        if (!isNaN(npPercInput) && npPercInput >= 0) {
+            newPatientsPercent = npPercInput / 100.0;
+        }
+    }
+
+    // Read incidence rate (percentage) and convert to fraction per year
+    const incInput = parseFloat(document.getElementById('incidenceRate').value);
+    if (!isNaN(incInput) && incInput >= 0) {
+        incidenceRate = incInput / 100.0;
+    }
+    // Read adoption rate and adoption midpoint for the logistic uptake curve
+    const adoptRateInput = parseFloat(document.getElementById('adoptionRate').value);
+    if (!isNaN(adoptRateInput) && adoptRateInput > 0) {
+        adoptionRate = adoptRateInput;
+    }
+    const adoptMidInput = parseFloat(document.getElementById('adoptionMidpoint').value);
+    if (!isNaN(adoptMidInput) && adoptMidInput >= 0) {
+        adoptionMidpoint = adoptMidInput;
+    }
+
+    // Determine innovation launch years based on the selected frequency or a custom list.
+    const freqSelect = document.getElementById('innovationFrequency');
+    const freqValue = freqSelect ? freqSelect.value : '3';
+    if (freqValue && freqValue !== 'custom') {
+        // Generate a sequence of launch years spaced by the selected frequency
+        // over the entire projection horizon.  Starting at year 1, add a new
+        // launch every <freq> years until the horizon (50 years) is exceeded.
+        const freq = parseInt(freqValue);
+        if (!isNaN(freq) && freq > 0) {
+            entryYears = [];
+            let yearVal = 1;
+            const horizonYears = 50; // match projection horizon used below
+            while (yearVal <= horizonYears) {
+                entryYears.push(yearVal);
+                yearVal += freq;
+            }
+        }
+    } else {
+        // Custom launch years: parse the comma‑separated list
+        const entryInput = document.getElementById('entryYearsInput');
+        if (entryInput) {
+            const yearsStr = entryInput.value.trim();
+            if (yearsStr) {
+                const list = yearsStr.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x) && x >= 0);
+                if (list.length > 0) {
+                    list.sort((a, b) => a - b);
+                    entryYears = list;
+                }
+            }
+        }
+    }
+    // Adjust deltaQ, severity and dOther arrays to match the new entryYears length
+    function adjustArrayLength(arr) {
+        const desired = entryYears.length;
+        if (arr.length < desired) {
+            const lastVal = arr[arr.length - 1];
+            const extra = Array(desired - arr.length).fill(lastVal);
+            return arr.concat(extra);
+        } else if (arr.length > desired) {
+            return arr.slice(0, desired);
+        }
+        return arr;
+    }
+    deltaQ = adjustArrayLength(deltaQ);
+    severity = adjustArrayLength(severity);
+    dOther = adjustArrayLength(dOther);
+
+    // Update disease‑specific arrays based on group selection or custom input
+    const group = document.getElementById('diseaseGroup').value;
+    if (group === 'custom') {
+        // Parse custom arrays
+        const dqStr = document.getElementById('customDeltaQ').value.trim();
+        const sevStr = document.getElementById('customSeverity').value.trim();
+        const otherStr = document.getElementById('customDOther').value.trim();
+        // Helper to parse comma‑separated list
+        function parseList(str) {
+            if (!str) return [];
+            return str.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+        }
+        const dqList = parseList(dqStr);
+        const sevList = parseList(sevStr);
+        const otherList = parseList(otherStr);
+        if (dqList.length !== entryYears.length || sevList.length !== entryYears.length || otherList.length !== entryYears.length) {
+            alert('Custom arrays must contain exactly ' + entryYears.length + ' values separated by commas.');
+            return;
+        }
+        deltaQ = dqList;
+        severity = sevList;
+        dOther = otherList;
+    } else {
+        // Use predefined arrays for selected group
+        if (diseaseGroups[group]) {
+            deltaQ = diseaseGroups[group].deltaQ.slice();
+            severity = diseaseGroups[group].severity.slice();
+            dOther = diseaseGroups[group].dOther.slice();
+        }
+    }
+
+    // After assigning new arrays based on the disease group or custom input, ensure
+    // they match the length of entryYears. If entryYears has been altered, the
+    // arrays may need to be extended or truncated accordingly. Reuse the
+    // adjustArrayLength helper defined above.
+    function adjustArrayLengthOuter(arr) {
+        const desired = entryYears.length;
+        if (arr.length < desired) {
+            const lastVal = arr[arr.length - 1];
+            const extra = Array(desired - arr.length).fill(lastVal);
+            return arr.concat(extra);
+        } else if (arr.length > desired) {
+            return arr.slice(0, desired);
+        }
+        return arr;
+    }
+    deltaQ = adjustArrayLengthOuter(deltaQ);
+    severity = adjustArrayLengthOuter(severity);
+    dOther = adjustArrayLengthOuter(dOther);
+    // Compute results for recursive and generic scenarios
+    const rec = computeLaunchPrices(thresholdValue, true);
+    const gen = computeLaunchPrices(thresholdValue, false);
+    const horizonYears = 50;
+    const recSoc = computeSocPricePath(rec.launchPrices, rec.genericPrices, horizonYears);
+    const genSoc = computeSocPricePath(gen.launchPrices, gen.genericPrices, horizonYears);
+    const recSpends = simulateSpendLogistic(rec.launchPrices, rec.genericPrices, horizonYears);
+    const genSpends = simulateSpendLogistic(gen.launchPrices, gen.genericPrices, horizonYears);
+    // Always show detailed tables for the recursive (on‑patent) scenario.  Both
+    // scenarios are plotted in the charts and summarised below, so a separate
+    // user selection is no longer necessary.
+    let selectedLaunchPrices = rec.launchPrices;
+    let selectedGenericPrices = rec.genericPrices;
+    let selectedSocPricePath = recSoc;
+    let selectedSpends = recSpends;
+    // Build wave results table for selected scenario
+    let waveHtml = '<h3>Launch and Generic Prices (Detailed)</h3><table><thead><tr><th>Wave</th><th>Launch year</th><th>ΔQALY</th><th>Severity</th><th>ΔOther (£)</th><th>Launch price (£)</th><th>Generic price (£)</th></tr></thead><tbody>';
+    for (let i = 0; i < entryYears.length; i++) {
+        waveHtml += '<tr>' +
+            `<td>${i + 1}</td>` +
+            `<td>${entryYears[i]}</td>` +
+            `<td>${deltaQ[i].toFixed(2)}</td>` +
+            `<td>${severity[i].toFixed(2)}</td>` +
+            `<td>${dOther[i].toFixed(0)}</td>` +
+            `<td>${formatCurrency(selectedLaunchPrices[i])}</td>` +
+            `<td>${formatCurrency(selectedGenericPrices[i])}</td>` +
+            '</tr>';
+    }
+    waveHtml += '</tbody></table>';
+    document.getElementById('waveTableContainer').innerHTML = waveHtml;
+    // Build SOC price path table
+    let socHtml = '<h3>Standard of Care Price Path (Detailed)</h3><table><thead><tr><th>Year</th><th>Price (£)</th></tr></thead><tbody>';
+    for (let year = 0; year < selectedSocPricePath.length; year++) {
+        socHtml += '<tr>' +
+            `<td>${year}</td>` +
+            `<td>${formatCurrency(selectedSocPricePath[year])}</td>` +
+            '</tr>';
+    }
+    socHtml += '</tbody></table>';
+    document.getElementById('socTableContainer').innerHTML = socHtml;
+    // Build annual spend table
+    let spendHtml = '<h3>Annual Drug Spend (Detailed)</h3><table><thead><tr><th>Year</th><th>Spend (£)</th></tr></thead><tbody>';
+    for (let year = 0; year < selectedSpends.annualSpends.length; year++) {
+        spendHtml += '<tr>' +
+            `<td>${year}</td>` +
+            `<td>${formatCurrency(selectedSpends.annualSpends[year])}</td>` +
+            '</tr>';
+    }
+    spendHtml += '</tbody></table>';
+    document.getElementById('spendTableContainer').innerHTML = spendHtml;
+    // Summary shows both scenarios for easy comparison.  We report the final-year
+    // annual spend instead of a cumulative total so that users can see a
+    // representative annualised figure rather than the sum over the full horizon.
+    const finalYear = horizonYears;
+    // Format final-year annual spend in billions for readability.  Use one
+    // decimal place and include a non-breaking thin space before the “bn”
+    // suffix to separate the number from the unit.  Use toLocaleString
+    // to insert thousands separators where appropriate.
+    const recYearBn = recSpends.annualSpends[finalYear] / 1e9;
+    const genYearBn = genSpends.annualSpends[finalYear] / 1e9;
+    const recBnString = recYearBn.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const genBnString = genYearBn.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const summary =
+        `Final standard of care price in year ${finalYear}: Recursive £${formatCurrency(recSoc[finalYear])} | Generic £${formatCurrency(genSoc[finalYear])}` +
+        `<br/>Annual drug spend in year ${finalYear}: Recursive £${recBnString} bn | Generic £${genBnString} bn`;
+    document.getElementById('summary').innerHTML = summary;
+    // Draw interactive charts with Plotly. Create arrays for the x‑axis (years) and define
+    // two traces per chart: one for the recursive scenario and one for the generic scenario.
+    const years = Array.from({ length: recSoc.length }, (_, i) => i);
+    const socData = [
+        { x: years, y: recSoc, mode: 'lines', name: 'Recursive' },
+        { x: years, y: genSoc, mode: 'lines', name: 'Generic' }
+    ];
+    const socLayout = {
+        title: 'Standard of Care Price (£)',
+        // Allocate extra space on the left for longer tick labels (e.g. £40,000) and
+        // reserve room below for the x‑axis label.  A slightly larger top margin
+        // separates the title from the chart.
+        margin: { l: 100, r: 20, t: 70, b: 80 },
+        xaxis: {
+            title: 'Year',
+            dtick: 1,
+            automargin: true
+        },
+        yaxis: {
+            title: 'Price (£)',
+            // Prefix each tick with a currency symbol. Use an integer format to avoid
+            // showing decimal places. The comma adds thousands separators.
+            tickprefix: '£',
+            tickformat: ',.0f',
+            automargin: true
+        },
+        hovermode: 'closest',
+        legend: {
+            orientation: 'h',
+            x: 0.5,
+            y: 1.18,
+            xanchor: 'center'
+        }
+    };
+    Plotly.newPlot('socChart', socData, socLayout, { responsive: true });
+    // Convert annual spend values to billions to provide more interpretable axis labels.
+    const recAnnualBn = recSpends.annualSpends.map(v => v / 1e9);
+    const genAnnualBn = genSpends.annualSpends.map(v => v / 1e9);
+    const spendData = [
+        { x: years, y: recAnnualBn, mode: 'lines', name: 'Recursive' },
+        { x: years, y: genAnnualBn, mode: 'lines', name: 'Generic' }
+    ];
+    const spendLayout = {
+        title: 'Annual Drug Spend (£ bn)',
+        margin: { l: 100, r: 20, t: 70, b: 80 },
+        xaxis: {
+            title: 'Year',
+            dtick: 1,
+            automargin: true
+        },
+        yaxis: {
+            title: 'Spend (£ bn)',
+            tickprefix: '£',
+            ticksuffix: ' bn',
+            // Format tick labels with commas and no decimals (e.g. 100 -> £100 bn).
+            tickformat: ',.0f',
+            automargin: true
+        },
+        hovermode: 'closest',
+        legend: {
+            orientation: 'h',
+            x: 0.5,
+            y: 1.18,
+            xanchor: 'center'
+        }
+    };
+    Plotly.newPlot('spendChart', spendData, spendLayout, { responsive: true });
+    // The dynamic adoption animation has been removed; diffusion dynamics are now illustrated via GIFs.
+    // drawAdoptionAnimation();
+    // Show results section and reset table visibility
+    document.getElementById('results').style.display = 'block';
+    tablesVisible = false;
+    const tablesSection = document.getElementById('tablesSection');
+    if (tablesSection) tablesSection.style.display = 'none';
+    const toggleBtn = document.getElementById('toggleTablesBtn');
+    if (toggleBtn) toggleBtn.textContent = 'Show detailed tables';
+}
+
+// Global flag controlling whether tables are visible
+let tablesVisible = false;
+
+// Draw an explanatory chart showing how the comparator price evolves across waves.
+// The recursive comparator uses the previous on‑patent price, while the generic
+// comparator benchmarks against the previous on‑patent price multiplied by the
+// generic factor.  The chart uses the current entryYears and baselineGenericPrice.
+function drawExplanationChart(recLaunchPrices) {
+    // Build arrays of comparators for each wave
+    const compRec = [];
+    const compGen = [];
+    for (let i = 0; i < entryYears.length; i++) {
+        if (i === 0) {
+            // The first wave always benchmarks against the baseline generic price
+            compRec.push(baselineGenericPrice);
+            compGen.push(baselineGenericPrice);
+        } else {
+            // Recursive comparator: previous on‑patent price
+            compRec.push(recLaunchPrices[i - 1]);
+            // Generic comparator: previous on‑patent price × generic factor
+            compGen.push(recLaunchPrices[i - 1] * genericFactor);
+        }
+    }
+    // Create labels for the x‑axis (wave numbers)
+    const labels = entryYears.map((_, idx) => 'Wave ' + (idx + 1));
+    const data = [
+        { x: labels, y: compRec, mode: 'lines+markers', name: 'Recursive comparator' },
+        { x: labels, y: compGen, mode: 'lines+markers', name: 'Generic comparator' }
+    ];
+    const layout = {
+        title: 'Comparator price by wave',
+        margin: { l: 100, r: 20, t: 70, b: 80 },
+        xaxis: { title: 'Innovation wave', automargin: true },
+        yaxis: {
+            title: 'Comparator price (£)',
+            tickprefix: '£',
+            tickformat: ',.0f',
+            automargin: true
+        },
+        hovermode: 'closest',
+        legend: {
+            orientation: 'h',
+            x: 0.5,
+            y: 1.15,
+            xanchor: 'center'
+        }
+    };
+    Plotly.newPlot('explanationChart', data, layout, { responsive: true });
+}
+
+// Toggle the visibility of the detailed tables and update button text
+function toggleTables() {
+    tablesVisible = !tablesVisible;
+    const section = document.getElementById('tablesSection');
+    const btn = document.getElementById('toggleTablesBtn');
+    if (!section || !btn) return;
+    if (tablesVisible) {
+        section.style.display = 'block';
+        btn.textContent = 'Hide detailed tables';
+    } else {
+        section.style.display = 'none';
+        btn.textContent = 'Show detailed tables';
+    }
+}
+</script>
+</body>
+</html>
